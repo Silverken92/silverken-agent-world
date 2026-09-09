@@ -1,21 +1,28 @@
 {
-  "name": "bot-crossing",
-  "version": "1.0.0",
+  "name": "silverken-agent-world",
+  "version": "0.1.0-alpha2",
   "private": true,
   "type": "module",
-  "description": "A 3D colony sim where every coding-agent thread on your machine is a little astronaut building something.",
+  "description": "SilverKen's 3D read-only visual control center for AI coding agents, derived from Bot Crossing.",
   "license": "MIT",
   "author": "Jarren Rocks",
-  "homepage": "https://botcrossing.com",
+  "contributors": [
+    "Silverken92"
+  ],
+  "homepage": "https://github.com/Silverken92/silverken-agent-world",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/jarrenrocks/bot-crossing.git"
+    "url": "git+https://github.com/Silverken92/silverken-agent-world.git"
   },
   "bugs": {
-    "url": "https://github.com/jarrenrocks/bot-crossing/issues"
+    "url": "https://github.com/Silverken92/silverken-agent-world/issues"
   },
   "keywords": [
+    "agency-agent",
+    "silverken",
     "claude-code",
+    "codex",
+    "cursor",
     "coding-agent",
     "three.js",
     "webgl",
