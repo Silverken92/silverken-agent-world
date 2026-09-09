@@ -1,5 +1,6 @@
 const DEFAULT_BASE_URL = 'http://127.0.0.1:8787'
 const REQUEST_TIMEOUT_MS = 1500
+const OPS_MODEL_PREFIX = 'SKOPS:'
 
 const ACTIVE_STATUSES = new Set([
   'IN_PROGRESS',
@@ -69,6 +70,27 @@ function textBytes(value) {
   return new TextEncoder().encode(value || '').length
 }
 
+function safeText(value, max = 96) {
+  return typeof value === 'string' ? value.slice(0, max) : ''
+}
+
+function safeCount(value) {
+  const number = Number(value)
+  return Number.isFinite(number) && number >= 0 ? Math.floor(number) : 0
+}
+
+function safeCosts(value) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return {}
+  const out = {}
+  for (const [currency, amount] of Object.entries(value).slice(0, 4)) {
+    const number = Number(amount)
+    if (!Number.isFinite(number) || number < 0) continue
+    const code = safeText(currency, 12).toUpperCase()
+    if (code) out[code] = number
+  }
+  return out
+}
+
 function branchFor(task) {
   const workspace = task.workspace_isolation
   if (!workspace) return ''
@@ -81,12 +103,93 @@ function worktreeFor(task) {
   return workspace.workspace_id || ''
 }
 
-function toThread(project, task) {
+function compactOperational(record, task) {
+  if (!record || typeof record !== 'object' || !record.task) return null
+
+  const verification = record.verification || {}
+  const activity = record.activity || {}
+  const evaluator = record.evaluator || null
+  const silverguard = record.silverguard || null
+  const release = record.release || null
+
+  return {
+    executionModel: safeText(task.execution_model, 48),
+    ownerAgent: safeText(task.owner_agent, 96),
+    risk: safeText(task.risk, 24),
+    verification: {
+      total: safeCount(verification.total),
+      pass: safeCount(verification.pass),
+      fail: safeCount(verification.fail),
+      unknown: safeCount(verification.unknown),
+      notRun: safeCount(verification.not_run),
+    },
+    activity: {
+      eventCount: safeCount(activity.event_count),
+      latestEventType: safeText(activity.latest_event_type, 64),
+      latestEventAt: safeText(activity.latest_event_at, 64),
+      latestAgentId: safeText(activity.latest_agent_id, 96),
+      tokenUsage: safeCount(activity.token_usage),
+      costByCurrency: safeCosts(activity.cost_by_currency),
+    },
+    evaluator: evaluator
+      ? {
+          verdict: safeText(evaluator.verdict, 24),
+          evaluatorId: safeText(evaluator.evaluator_id, 96),
+          securityRequired: evaluator.security_required === true,
+        }
+      : null,
+    silverguard: silverguard
+      ? {
+          disposition: safeText(silverguard.disposition, 24),
+          reviewerId: safeText(silverguard.reviewer_id, 96),
+          blockingFindingCount: safeCount(silverguard.blocking_finding_count),
+          residualFindingCount: safeCount(silverguard.residual_finding_count),
+          approvalUsed: silverguard.approval_used === true,
+        }
+      : null,
+    release: release
+      ? {
+          disposition: safeText(release.disposition, 24),
+          releaseReady: release.release_ready === true,
+        }
+      : null,
+  }
+}
+
+function encodeOperationalModel(ops) {
+  if (!ops) return ''
+  const display = {
+    m: ops.executionModel,
+    o: ops.ownerAgent,
+    a: ops.activity.latestAgentId,
+    v: [
+      ops.verification.pass,
+      ops.verification.total,
+      ops.verification.fail,
+      ops.verification.unknown,
+      ops.verification.notRun,
+    ],
+    e: ops.evaluator?.verdict || '',
+    g: ops.silverguard?.disposition || '',
+    b: ops.silverguard?.blockingFindingCount || 0,
+    r: ops.release ? ops.release.releaseReady : null,
+    d: ops.release?.disposition || '',
+    t: ops.activity.tokenUsage,
+    c: ops.activity.costByCurrency,
+  }
+  return `${OPS_MODEL_PREFIX}${encodeURIComponent(JSON.stringify(display))}`
+}
+
+function toThread(project, record) {
+  const task = record?.task && typeof record.task === 'object' ? record.task : record
+  const ops = compactOperational(record, task)
   const objective = task.objective || 'Untitled Agency Agent task'
   const createdAt = epochMs(task.created_at)
-  const updatedAt = epochMs(task.updated_at) || createdAt
+  const taskUpdatedAt = epochMs(task.updated_at) || createdAt
+  const activityAt = epochMs(ops?.activity.latestEventAt)
+  const updatedAt = Math.max(taskUpdatedAt, activityAt)
   const status = task.status || 'BACKLOG'
-  const serializedSize = textBytes(JSON.stringify(task))
+  const serializedSize = textBytes(JSON.stringify(record))
 
   return {
     id: `agency-agent:${project.project_id}:${task.id}`,
@@ -97,7 +200,7 @@ function toThread(project, task) {
     worktree: worktreeFor(task),
     cwd: '',
     gitBranch: branchFor(task),
-    model: task.execution_model || 'AGENCY_AGENT',
+    model: encodeOperationalModel(ops) || task.execution_model || 'AGENCY_AGENT',
     effort: (task.risk || '').toLowerCase(),
     createdAt,
     lastActivityAt: updatedAt,
@@ -111,6 +214,7 @@ function toThread(project, task) {
     sizeBytes: Math.max(serializedSize, 1),
     source: 'agency-agent',
     canOpen: false,
+    operational: ops,
     ref: {
       projectId: project.project_id,
       taskId: task.id,
@@ -144,6 +248,22 @@ async function diagnostic() {
   }
 }
 
+async function scanProject(project) {
+  const projectId = encodeURIComponent(project.project_id)
+  try {
+    const snapshot = await requestJson(`/api/v1/projects/${projectId}/agent-world`)
+    const snapshotProject = snapshot?.project || project
+    const tasks = Array.isArray(snapshot?.tasks) ? snapshot.tasks : []
+    return tasks.map((record) => toThread(snapshotProject, record))
+  } catch (error) {
+    // AW5 snapshot landed after the original bridge. Keep older local Agency Agent checkouts
+    // usable during upgrades, but only fall back for an endpoint that genuinely does not exist.
+    if (error.status !== 404) throw error
+    const tasks = await requestJson(`/api/v1/projects/${projectId}/tasks`)
+    return Array.isArray(tasks) ? tasks.map((task) => toThread(project, task)) : []
+  }
+}
+
 async function scanThreads() {
   if (!token()) return []
 
@@ -158,15 +278,11 @@ async function scanThreads() {
   const threads = []
 
   for (const project of projects) {
-    let tasks
     try {
-      tasks = await requestJson(`/api/v1/projects/${encodeURIComponent(project.project_id)}/tasks`)
+      threads.push(...(await scanProject(project)))
     } catch (error) {
       console.warn(`[agency-agent] skipping project ${project.project_id}: ${error.message}`)
-      continue
     }
-
-    for (const task of tasks) threads.push(toThread(project, task))
   }
 
   return threads
@@ -196,4 +312,4 @@ export default {
   newSession,
 }
 
-export { toThread }
+export { OPS_MODEL_PREFIX, compactOperational, encodeOperationalModel, toThread }
