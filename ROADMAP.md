@@ -20,36 +20,40 @@ Completed in `Silverken92/agency-agent`.
 - preserve Operator API/RBAC as authority;
 - add ADR-0014 to Agency Agent.
 
-## AW2 — Repository Bootstrap 🚧
+## AW2 — Repository Bootstrap ✅
 
 Goal: establish a maintainable SilverKen fork with a tested Agency Agent harness.
 
-Exit criteria:
+Completed evidence:
 
 - [x] fork `Station-Sciences/bot-crossing` as `Silverken92/silverken-agent-world`;
-- [x] create dedicated implementation branch;
 - [x] register `agency-agent` harness;
 - [x] map Agency Agent task states into colony behavior;
 - [x] add adapter unit tests;
 - [x] rebrand package/app shell/README;
 - [x] preserve MIT/upstream attribution;
-- [x] add repository CI;
-- [ ] CI passes on AW2 PR;
-- [ ] squash merge to `main`;
-- [ ] post-merge CI passes on `main`.
+- [x] add hardened repository CI with runtime dependency audit;
+- [x] PR #1 quality gate passes;
+- [x] 39/39 tests pass;
+- [x] production build passes;
+- [x] squash merge to `main` at `1705be2f823f30a18352561b5460d98da28bb314`;
+- [x] post-merge `main` quality gate passes.
 
-## AW3 — Live Agency Agent View
+## AW3 — Live Agency Agent View 🚧
 
-Goal: prove end-to-end operation against a real local Agency Agent instance.
+Goal: prove end-to-end operation against a real local Agency Agent instance and make connection failures understandable.
 
-Planned work:
+Implemented in the AW3 branch:
 
-- validate Operator API token flow locally;
-- render real Agency Agent projects as zones;
-- render active tasks as astronauts/buildings;
-- validate state transitions without reload races;
-- improve unavailable/expired-token diagnostics;
-- add fixture-backed API integration tests where practical.
+- [x] detect the Agency Agent Operator API through public `/health`;
+- [x] keep bearer authentication server-side;
+- [x] report a missing token explicitly;
+- [x] distinguish rejected and under-authorized tokens;
+- [x] avoid throwing the colony scan for expected auth failures;
+- [x] fixture-backed live project/task API scan tests;
+- [x] verify normalized threads contain no bearer credential;
+- [ ] exercise against a real operator machine with a real Agency Agent API token;
+- [ ] observe real task state transitions in the running colony.
 
 Exit signal: a real Agency Agent project can be watched live in the colony with no write path from Agent World.
 

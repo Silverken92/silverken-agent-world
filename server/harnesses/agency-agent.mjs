@@ -1,4 +1,5 @@
 const DEFAULT_BASE_URL = 'http://127.0.0.1:8787'
+const REQUEST_TIMEOUT_MS = 1500
 
 const ACTIVE_STATUSES = new Set([
   'IN_PROGRESS',
@@ -24,22 +25,39 @@ function token() {
   return (process.env.AGENCY_AGENT_TOKEN || '').trim()
 }
 
-async function apiGet(path) {
-  const authToken = token()
-  if (!authToken) throw new Error('AGENCY_AGENT_TOKEN is not configured')
+async function requestJson(path, { auth = true } = {}) {
+  const headers = { Accept: 'application/json' }
+  if (auth) {
+    const authToken = token()
+    if (!authToken) {
+      const error = new Error('AGENCY_AGENT_TOKEN is not configured')
+      error.code = 'TOKEN_MISSING'
+      throw error
+    }
+    headers.Authorization = `Bearer ${authToken}`
+  }
 
   const response = await fetch(`${baseUrl()}${path}`, {
-    headers: {
-      Authorization: `Bearer ${authToken}`,
-      Accept: 'application/json',
-    },
+    headers,
+    signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
   })
 
   if (!response.ok) {
-    throw new Error(`Agency Agent API ${response.status} for ${path}`)
+    const error = new Error(`Agency Agent API ${response.status} for ${path}`)
+    error.status = response.status
+    throw error
   }
 
   return response.json()
+}
+
+async function healthAvailable() {
+  try {
+    const health = await requestJson('/health', { auth: false })
+    return health?.status === 'ok' && health?.service === 'agency-agent-operator'
+  } catch {
+    return false
+  }
 }
 
 function epochMs(value) {
@@ -103,23 +121,46 @@ function toThread(project, task) {
 }
 
 async function detect() {
-  if (!token()) return false
+  return healthAvailable()
+}
+
+async function diagnostic() {
+  if (!(await healthAvailable())) return ''
+  if (!token()) {
+    return 'Agency Agent is running, but AGENCY_AGENT_TOKEN is not configured.'
+  }
+
   try {
-    await apiGet('/api/v1/projects')
-    return true
-  } catch {
-    return false
+    await requestJson('/api/v1/projects')
+    return ''
+  } catch (error) {
+    if (error.status === 401) {
+      return 'Agency Agent rejected AGENCY_AGENT_TOKEN. Create a new Operator API token.'
+    }
+    if (error.status === 403) {
+      return 'Agency Agent accepted the token, but it does not have permission to read projects.'
+    }
+    return `Agency Agent API is reachable but project discovery failed: ${error.message}`
   }
 }
 
 async function scanThreads() {
-  const projects = await apiGet('/api/v1/projects')
+  if (!token()) return []
+
+  let projects
+  try {
+    projects = await requestJson('/api/v1/projects')
+  } catch (error) {
+    if (error.status === 401 || error.status === 403) return []
+    throw error
+  }
+
   const threads = []
 
   for (const project of projects) {
     let tasks
     try {
-      tasks = await apiGet(`/api/v1/projects/${encodeURIComponent(project.project_id)}/tasks`)
+      tasks = await requestJson(`/api/v1/projects/${encodeURIComponent(project.project_id)}/tasks`)
     } catch (error) {
       console.warn(`[agency-agent] skipping project ${project.project_id}: ${error.message}`)
       continue
@@ -149,6 +190,7 @@ export default {
   id: 'agency-agent',
   name: 'Agency Agent',
   detect,
+  diagnostic,
   scanThreads,
   openThread,
   newSession,

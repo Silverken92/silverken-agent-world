@@ -1,6 +1,6 @@
 # Agency Agent Integration
 
-This document defines the first SilverKen Agent World integration with Agency Agent.
+This document defines the SilverKen Agent World integration with Agency Agent.
 
 ## Boundary
 
@@ -12,7 +12,7 @@ It must not:
 - bypass Operator API authentication or project RBAC;
 - store bearer tokens in colony state, thread refs or browser payloads;
 - represent visual state as authoritative approval/security/release evidence;
-- create, retry, approve, release or otherwise mutate Agency Agent work in the AW2 bridge.
+- create, retry, approve, release or otherwise mutate Agency Agent work in the AW3 bridge.
 
 ## Configuration
 
@@ -26,9 +26,42 @@ npm run dev
 
 `AGENCY_AGENT_URL` defaults to `http://127.0.0.1:8787`.
 
-`AGENCY_AGENT_TOKEN` has no default. Without it, the harness reports itself as unavailable.
+`AGENCY_AGENT_TOKEN` has no default.
 
-## API reads
+## Discovery and diagnostics
+
+AW3 separates **service discovery** from **authorization**.
+
+The adapter first probes the public Agency Agent health endpoint:
+
+```text
+GET /health
+```
+
+It expects:
+
+```json
+{
+  "status": "ok",
+  "service": "agency-agent-operator"
+}
+```
+
+That means Agent World can show Agency Agent as installed/running even when the bearer token has not been configured yet.
+
+The harness diagnostic then distinguishes:
+
+| Situation | Result |
+| --- | --- |
+| Operator API not reachable | harness absent; no noisy error |
+| API healthy, token missing | explicit token-not-configured diagnostic |
+| API healthy, token returns `401` | token rejected/expired diagnostic |
+| API healthy, token returns `403` | token accepted but under-authorized diagnostic |
+| API healthy, token authorized | no diagnostic; tasks can be scanned |
+
+Network/API probes are bounded with a short timeout so a dead local service cannot stall colony polling indefinitely.
+
+## Authenticated API reads
 
 The adapter currently uses:
 
@@ -44,6 +77,8 @@ Authorization: Bearer <token>
 ```
 
 No token value is copied into the normalized thread object.
+
+Expected authentication failures (`401`/`403`) produce an empty Agency Agent roster plus a harness diagnostic rather than throwing the entire colony scan.
 
 ## Mapping
 
@@ -111,7 +146,7 @@ Other states remain visible as idle/non-attention work unless the upstream colon
 
 ## Opening and creating sessions
 
-For AW2:
+For AW3:
 
 ```text
 openThread()  -> disabled
@@ -139,8 +174,40 @@ Within the Agency Agent adapter, an unreadable project is skipped with a warning
 - credential-free refs;
 - no write method;
 - disabled open/new-session behavior;
-- no detection without an explicit token.
+- public health discovery without a token;
+- missing-token diagnostic;
+- rejected-token diagnostic;
+- live project/task scan through a mocked Operator API;
+- server-side bearer header usage;
+- bearer credential absence from normalized thread JSON;
+- clean absence when the Operator API cannot be reached.
+
+## Real-machine AW3 smoke
+
+The remaining AW3 proof must run on the operator's machine because the Operator API is intentionally local/private.
+
+Expected sequence:
+
+```bash
+# terminal 1 — Agency Agent
+agency-agent serve
+
+# terminal 2 — after creating an Operator API token
+export AGENCY_AGENT_URL=http://127.0.0.1:8787
+export AGENCY_AGENT_TOKEN=aa_your_token_here
+npm install
+npm run dev
+```
+
+Then verify:
+
+1. Agency Agent appears in the harness list;
+2. Operator projects appear as colony zones;
+3. project tasks appear as astronauts/buildings;
+4. changing a task into `NEEDS_USER_DECISION` produces the attention state on the next poll;
+5. `FAILED_VERIFICATION` produces the error state;
+6. no mutation is written back by Agent World.
 
 ## Future enrichment
 
-AW3/AW5 may add additional **read-only** API reads for authoritative evidence such as agents, events, verification, SilverGuard and release state. Any such data should be normalized server-side before reaching the browser and should follow the same least-privilege principle.
+AW5 may add additional **read-only** API reads for authoritative evidence such as agents, events, verification, SilverGuard and release state. Any such data should be normalized server-side before reaching the browser and should follow the same least-privilege principle.
