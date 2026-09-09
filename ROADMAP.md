@@ -39,11 +39,11 @@ Completed evidence:
 - [x] squash merge to `main` at `1705be2f823f30a18352561b5460d98da28bb314`;
 - [x] post-merge `main` quality gate passes.
 
-## AW3 — Live Agency Agent View 🚧
+## AW3 — Live Agency Agent View ⚙️
 
 Goal: prove end-to-end operation against a real local Agency Agent instance and make connection failures understandable.
 
-Implemented in the AW3 branch:
+Code/CI complete:
 
 - [x] detect the Agency Agent Operator API through public `/health`;
 - [x] keep bearer authentication server-side;
@@ -52,22 +52,35 @@ Implemented in the AW3 branch:
 - [x] avoid throwing the colony scan for expected auth failures;
 - [x] fixture-backed live project/task API scan tests;
 - [x] verify normalized threads contain no bearer credential;
+- [x] PR #2 quality gate passes;
+- [x] squash merge to `main` at `476e1a36f06edc32e4d0a76dc27f9c89173d6fc9`;
+- [x] post-merge `main` quality gate passes;
 - [ ] exercise against a real operator machine with a real Agency Agent API token;
 - [ ] observe real task state transitions in the running colony.
 
-Exit signal: a real Agency Agent project can be watched live in the colony with no write path from Agent World.
+AW3 remains operator-smoke pending because the Operator API is intentionally local/private.
 
-## AW4 — SilverKen Visual Identity
+## AW4 — SilverKen Visual Identity 🚧
 
-Goal: make the product visually distinct while retaining the proven colony engine.
+Goal: make the product visually distinct while retaining the proven colony engine and keeping upstream sync inexpensive.
 
-Planned work:
+Implemented on the AW4 branch:
 
-- SilverKen naming throughout UI chrome;
-- visual language for SilverFlow, SilverGuard, QA, evaluator and release roles;
-- role-aware markers/props/buildings;
-- refined status labels and help text;
-- retain accessibility and performance characteristics.
+- [x] dedicated `silverken.css` product skin rather than rewriting upstream HUD CSS;
+- [x] dedicated idempotent branding layer rather than forking `hud.js` wholesale;
+- [x] SilverKen monogram and two-line Agent World brand header;
+- [x] persistent `Governed view / Read only` system indicator;
+- [x] graphite/silver + violet/cyan product palette;
+- [x] SilverKen boot screen and favicon treatment;
+- [x] refined operator vocabulary (`active`, `needs input`, `failed`, `released`);
+- [x] `repo` → `project` and `conversation` → `session` product vocabulary where appropriate;
+- [x] SilverKen help/governance explanation;
+- [x] visual identity architecture documentation;
+- [ ] AW4 PR quality gate passes;
+- [ ] squash merge to `main`;
+- [ ] post-merge `main` quality gate passes.
+
+Role-specific operational evidence (SilverGuard, evaluator, release, GitHub CI) moves to AW5 so AW4 stays a pure presentation layer with no new data coupling.
 
 ## AW5 — Operational Enrichment
 
