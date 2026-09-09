@@ -10,13 +10,14 @@ It must not:
 
 - write directly to Agency Agent databases;
 - bypass Operator API authentication or project RBAC;
-- store bearer tokens in colony state, thread refs or browser payloads;
+- store bearer tokens in colony state, thread refs or browser-persisted state;
+- replicate raw evaluator, security or release evidence unnecessarily;
 - represent visual state as authoritative approval/security/release evidence;
-- create, retry, approve, release or otherwise mutate Agency Agent work in the AW3 bridge.
+- create, retry, approve, release or otherwise mutate Agency Agent work before a separately governed mutation slice.
 
 ## Configuration
 
-Start Agency Agent's Operator API, create a bearer token through an authenticated Operator session, then launch Agent World from the same shell environment:
+Start Agency Agent's Operator API, create a bearer token through the trusted Operator administration boundary, then launch Agent World from the same shell environment:
 
 ```bash
 export AGENCY_AGENT_URL=http://127.0.0.1:8787
@@ -27,6 +28,8 @@ npm run dev
 `AGENCY_AGENT_URL` defaults to `http://127.0.0.1:8787`.
 
 `AGENCY_AGENT_TOKEN` has no default.
+
+See [`local-smoke.md`](local-smoke.md) for complete Windows, macOS and Linux instructions.
 
 ## Discovery and diagnostics
 
@@ -49,7 +52,7 @@ It expects:
 
 That means Agent World can show Agency Agent as installed/running even when the bearer token has not been configured yet.
 
-The harness diagnostic then distinguishes:
+The harness diagnostic distinguishes:
 
 | Situation | Result |
 | --- | --- |
@@ -63,12 +66,22 @@ Network/API probes are bounded with a short timeout so a dead local service cann
 
 ## Authenticated API reads
 
-The adapter currently uses:
+AW5 uses:
 
 ```text
 GET /api/v1/projects
+GET /api/v1/projects/{project_id}/agent-world
+```
+
+The second route is a bounded snapshot produced by Agency Agent specifically for the visual operations surface. Agent World makes one snapshot request per authorized project rather than multiplying evidence calls for every task.
+
+For compatibility while upgrading an older local Agency Agent checkout, Agent World falls back to:
+
+```text
 GET /api/v1/projects/{project_id}/tasks
 ```
+
+**only** when the snapshot route returns `404`. Authentication/authorization or server failures do not silently downgrade the security/data contract.
 
 The bearer token is sent only in the server-side request header:
 
@@ -76,13 +89,35 @@ The bearer token is sent only in the server-side request header:
 Authorization: Bearer <token>
 ```
 
-No token value is copied into the normalized thread object.
+No token value is copied into normalized thread data, `ref`, operational metadata or colony persistence.
 
-Expected authentication failures (`401`/`403`) produce an empty Agency Agent roster plus a harness diagnostic rather than throwing the entire colony scan.
+## AW5 snapshot data
+
+The Agency Agent snapshot is intentionally data-minimized. Per task it exposes compact operational fields required by the 3D view:
+
+- task id/objective/status/risk/execution model;
+- owner agent and workspace hints;
+- task timestamps;
+- verification counts;
+- event count, latest activity and most recent agent;
+- aggregate token usage and reported cost;
+- compact independent Evaluator verdict;
+- compact SilverGuard disposition and finding counts;
+- compact Agency Agent release disposition/readiness.
+
+It does **not** replicate raw evidence bodies, evaluator/security/release summaries, acceptance checks, tool policy or credentials.
+
+The Agency Agent endpoint is merged on its authoritative repository at:
+
+```text
+dc9cf4b4726d2ee686655d5d2221fce169261978
+```
+
+Its post-merge Repository Quality passes runtime/docs, PostgreSQL production smoke and constrained-container production smoke.
 
 ## Mapping
 
-Agency Agent returns governed `TaskRecord` objects. The adapter translates each task into the Bot Crossing `Thread` contract.
+The adapter translates each task/snapshot record into the Bot Crossing `Thread` contract.
 
 | Thread field | Agency Agent source |
 | --- | --- |
@@ -91,17 +126,18 @@ Agency Agent returns governed `TaskRecord` objects. The adapter translates each 
 | `project` | Operator project name/slug |
 | `worktree` | workspace isolation ID when mode is `WORKTREE` |
 | `gitBranch` | workspace integration target |
-| `model` | execution model |
+| `model` | SilverKen compact display payload for enriched records, execution model for legacy fallback |
 | `effort` | risk level |
 | `createdAt` | task creation timestamp |
-| `lastActivityAt` | task update timestamp |
+| `lastActivityAt` | newest of task update and snapshot activity timestamp |
 | `running` | active implementation/review states |
 | `unread` | blocked/human-decision states |
 | `hasError` | `FAILED_VERIFICATION` |
 | `archived` | `DONE` |
 | `source` | `agency-agent` |
+| `operational` | compact AW5 operational object when available |
 
-The `ref` object contains only:
+The `ref` object remains deliberately small:
 
 ```text
 projectId
@@ -109,6 +145,26 @@ taskId
 status
 ownerAgent
 ```
+
+## Operational badges
+
+For an enriched Agency Agent astronaut, the SilverKen UI can render available badges for:
+
+```text
+execution model
+owner agent
+most recent active agent
+verification pass/total
+Evaluator verdict
+SilverGuard disposition
+Agency Agent release gate
+token usage
+reported cost
+```
+
+The UI layer decodes and formats those values without importing governance logic into the Three.js engine.
+
+`Release · READY` is explicitly **not** GitHub PR merge evidence. The adapter does not set `prState` from Agency Agent release readiness, so the upstream merged-PR celebration cannot be faked by a release-gate signal.
 
 ## State semantics
 
@@ -146,7 +202,7 @@ Other states remain visible as idle/non-attention work unless the upstream colon
 
 ## Opening and creating sessions
 
-For AW3:
+For the current bridge:
 
 ```text
 openThread()  -> disabled
@@ -175,39 +231,39 @@ Within the Agency Agent adapter, an unreadable project is skipped with a warning
 - no write method;
 - disabled open/new-session behavior;
 - public health discovery without a token;
-- missing-token diagnostic;
-- rejected-token diagnostic;
-- live project/task scan through a mocked Operator API;
+- missing-token and rejected-token diagnostics;
+- AW5 snapshot scanning through a mocked Operator API;
+- one bounded snapshot call per project;
+- compatibility fallback only on snapshot `404`;
+- compact verification/Evaluator/SilverGuard/release/activity mapping;
+- no PR merge state inferred from release readiness;
 - server-side bearer header usage;
 - bearer credential absence from normalized thread JSON;
 - clean absence when the Operator API cannot be reached.
 
-## Real-machine AW3 smoke
+`test/operational.test.mjs` verifies the SilverKen display decoder and badge presentation, including explicit failure styling and the distinction between release readiness and GitHub merge evidence.
 
-The remaining AW3 proof must run on the operator's machine because the Operator API is intentionally local/private.
+The AW5 Agent World branch quality gate passes **47/47 tests**, runtime dependency audit and production Vite build.
 
-Expected sequence:
+## Real-machine smoke
 
-```bash
-# terminal 1 — Agency Agent
-agency-agent serve
+The remaining end-to-end proof must run on the operator's machine because the Operator API is intentionally local/private.
 
-# terminal 2 — after creating an Operator API token
-export AGENCY_AGENT_URL=http://127.0.0.1:8787
-export AGENCY_AGENT_TOKEN=aa_your_token_here
-npm install
-npm run dev
+Use [`local-smoke.md`](local-smoke.md). The smoke closes the real-machine part of AW3 and validates AW5 against live Agency Agent state.
+
+The key proof is:
+
+```text
+Agency Agent /health                     PASS
+bearer project discovery                 PASS
+AW5 project snapshot                     PASS
+project zone visible                     PASS
+task astronaut visible                   PASS
+working/attention/failure mapping        PASS
+operational badges                       PASS
+no mutation from Agent World             PASS
 ```
 
-Then verify:
+## Next enrichment
 
-1. Agency Agent appears in the harness list;
-2. Operator projects appear as colony zones;
-3. project tasks appear as astronauts/buildings;
-4. changing a task into `NEEDS_USER_DECISION` produces the attention state on the next poll;
-5. `FAILED_VERIFICATION` produces the error state;
-6. no mutation is written back by Agent World.
-
-## Future enrichment
-
-AW5 may add additional **read-only** API reads for authoritative evidence such as agents, events, verification, SilverGuard and release state. Any such data should be normalized server-side before reaching the browser and should follow the same least-privilege principle.
+AW5B can add explicitly linked GitHub PR/CI context. GitHub state remains evidence/context rather than a replacement for Agency Agent release gates, and merged-PR celebration must only come from real merged-PR evidence.
