@@ -10,9 +10,13 @@ const STAT_LABELS = {
 
 function replaceButtonText(button, text) {
   if (!button) return
+  const next = ` ${text}`
   const node = [...button.childNodes].find((child) => child.nodeType === Node.TEXT_NODE)
-  if (node) node.textContent = ` ${text}`
-  else button.append(` ${text}`)
+  if (node) {
+    if (node.textContent !== next) node.textContent = next
+  } else {
+    button.append(next)
+  }
 }
 
 function applyBrand(root = document) {
@@ -71,10 +75,15 @@ function applyBrand(root = document) {
 
   const hideProject = root.querySelector('#btn-hide-project')
   replaceButtonText(hideProject, 'Hide project')
-  if (hideProject) hideProject.title = 'Hide this project from Agent World without modifying its source system'
+  if (
+    hideProject &&
+    hideProject.title !== 'Hide this project from Agent World without modifying its source system'
+  ) {
+    hideProject.title = 'Hide this project from Agent World without modifying its source system'
+  }
 
   const shot = root.querySelector('#btn-shot')
-  if (shot) shot.title = 'Capture Agent World (P)'
+  if (shot && shot.title !== 'Capture Agent World (P)') shot.title = 'Capture Agent World (P)'
 }
 
 let scheduled = false
