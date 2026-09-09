@@ -1,0 +1,327 @@
+/* SilverKen Agent World — product skin.
+   This file deliberately overrides the upstream HUD instead of rewriting it. Keeping the
+   visual identity as a thin layer makes future Bot Crossing syncs much easier to review. */
+
+:root {
+  --bg: #05070d;
+  --panel: rgba(9, 13, 25, 0.88);
+  --panel-solid: #0c1220;
+  --line: rgba(174, 190, 226, 0.12);
+  --line-strong: rgba(174, 190, 226, 0.24);
+  --text: #f3f6ff;
+  --muted: #9aa8c1;
+  --dim: #68758e;
+  --accent: #8b7cff;
+  --green: #55d69e;
+  --blue: #69a7ff;
+  --amber: #f1c86b;
+  --red: #ff7083;
+  --teal: #5ad9d0;
+  --radius: 16px;
+  --shadow: 0 18px 54px rgba(0, 0, 0, 0.58), 0 2px 10px rgba(0, 0, 0, 0.42),
+    0 0 0 1px rgba(120, 144, 205, 0.025) inset;
+}
+
+body {
+  background:
+    radial-gradient(circle at 16% 8%, rgba(93, 74, 190, 0.12), transparent 32%),
+    radial-gradient(circle at 82% 88%, rgba(54, 171, 183, 0.08), transparent 34%),
+    var(--bg);
+}
+
+.panel {
+  background:
+    linear-gradient(150deg, rgba(20, 28, 49, 0.9), rgba(8, 12, 24, 0.9)),
+    var(--panel);
+  border-color: var(--line);
+  backdrop-filter: blur(22px) saturate(1.35);
+  -webkit-backdrop-filter: blur(22px) saturate(1.35);
+}
+
+.side {
+  border-color: rgba(139, 124, 255, 0.22);
+}
+
+.side::before {
+  content: '';
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 1px;
+  background: linear-gradient(
+    to bottom,
+    transparent,
+    rgba(139, 124, 255, 0.42) 14%,
+    rgba(90, 217, 208, 0.24) 54%,
+    transparent 92%
+  );
+  pointer-events: none;
+  z-index: 4;
+}
+
+.side .brandbar {
+  min-height: 58px;
+  padding: 9px 8px 8px 11px;
+  border-bottom-color: rgba(139, 124, 255, 0.17);
+  background: linear-gradient(90deg, rgba(139, 124, 255, 0.075), transparent 58%);
+}
+
+.side .brand {
+  gap: 8px;
+  font-size: 12px;
+  letter-spacing: 0;
+}
+
+.side .brand .dot {
+  display: none;
+}
+
+.sk-mark {
+  width: 31px;
+  height: 31px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  border-radius: 9px;
+  border: 1px solid rgba(176, 165, 255, 0.42);
+  background:
+    linear-gradient(145deg, rgba(139, 124, 255, 0.32), rgba(71, 207, 208, 0.12)),
+    rgba(255, 255, 255, 0.035);
+  color: #ece9ff;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  box-shadow: 0 0 22px rgba(139, 124, 255, 0.16), inset 0 1px rgba(255, 255, 255, 0.12);
+}
+
+.sk-brand-copy {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 0;
+  line-height: 1.05;
+}
+
+.sk-brand-copy strong {
+  color: #f6f5ff;
+  font-size: 12px;
+  font-weight: 760;
+  letter-spacing: 0.025em;
+  text-transform: uppercase;
+}
+
+.sk-brand-copy small {
+  margin-top: 3px;
+  color: #8693ad;
+  font-size: 8.5px;
+  font-weight: 690;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+
+.sk-systembar {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 29px;
+  padding: 0 14px;
+  border-bottom: 1px solid var(--line);
+  background: rgba(4, 7, 15, 0.46);
+  color: #8591aa;
+  font-size: 8.5px;
+  font-weight: 700;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+}
+
+.sk-systembar .sk-live {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--teal);
+  box-shadow: 0 0 9px rgba(90, 217, 208, 0.78);
+}
+
+.sk-systembar strong {
+  margin-left: auto;
+  padding: 3px 6px;
+  border: 1px solid rgba(139, 124, 255, 0.25);
+  border-radius: 5px;
+  color: #b6acff;
+  background: rgba(139, 124, 255, 0.08);
+  font-size: 8px;
+  letter-spacing: 0.08em;
+}
+
+.stats {
+  gap: 4px;
+  padding-top: 9px;
+  padding-bottom: 9px;
+  background: rgba(4, 7, 15, 0.2);
+}
+
+.stat {
+  background: rgba(255, 255, 255, 0.035);
+  border-color: rgba(174, 190, 226, 0.1);
+}
+
+.stat.working {
+  color: #66e0ae;
+}
+.stat.waiting {
+  color: #79afff;
+}
+.stat.blocked {
+  color: #ff8190;
+}
+.stat.done {
+  color: #f4ce74;
+}
+.stat.idle {
+  color: #c1c9d9;
+}
+
+.side .alarm {
+  background: #8b7cff;
+  box-shadow: 0 0 10px rgba(139, 124, 255, 0.7);
+}
+
+.side .repo {
+  border-radius: 11px;
+}
+
+.side .repo:hover {
+  background: rgba(139, 124, 255, 0.065);
+}
+
+.side .repo[aria-pressed='true'] {
+  background: linear-gradient(90deg, rgba(139, 124, 255, 0.12), rgba(90, 217, 208, 0.035));
+  border-color: rgba(139, 124, 255, 0.26);
+}
+
+.side .swatch {
+  border-radius: 50%;
+  box-shadow: 0 0 10px currentColor;
+}
+
+.btn.primary {
+  background: linear-gradient(135deg, #7f70f3, #6758d8);
+  box-shadow: 0 5px 17px rgba(105, 88, 216, 0.24);
+}
+
+.btn.primary:hover {
+  background: linear-gradient(135deg, #9386ff, #7666e7);
+}
+
+.btn[aria-pressed='true'] {
+  background: rgba(139, 124, 255, 0.16);
+  border-color: rgba(139, 124, 255, 0.46);
+  color: #c2baff;
+}
+
+.chip[aria-pressed='true'],
+.planet[aria-pressed='true'] {
+  background: rgba(90, 217, 208, 0.11);
+  border-color: rgba(90, 217, 208, 0.4);
+  color: #94eee6;
+}
+
+.thread-pop {
+  border-color: rgba(139, 124, 255, 0.19);
+}
+
+.thread-pop .avatar {
+  background: radial-gradient(circle, #10172a, #050811 72%);
+  border-color: rgba(139, 124, 255, 0.2);
+}
+
+.thread-pop .tag {
+  border: 1px solid rgba(174, 190, 226, 0.07);
+  background: rgba(174, 190, 226, 0.06);
+}
+
+.progress {
+  background: rgba(174, 190, 226, 0.1);
+}
+
+.settings {
+  border-color: rgba(90, 217, 208, 0.16);
+}
+
+.settings header::before {
+  content: 'WORLD / ';
+  color: #8276e9;
+  font-size: 9px;
+  letter-spacing: 0.12em;
+}
+
+.help .sheet {
+  border-color: rgba(139, 124, 255, 0.22);
+}
+
+.help h2 {
+  letter-spacing: -0.025em;
+}
+
+.sk-governance-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  margin: 11px 0 4px;
+  padding: 9px 10px;
+  border: 1px solid rgba(90, 217, 208, 0.16);
+  border-radius: 9px;
+  background: rgba(90, 217, 208, 0.045);
+  color: #9faac0;
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.sk-governance-note::before {
+  content: '◈';
+  color: #66ddd4;
+  font-size: 12px;
+  line-height: 1.2;
+}
+
+.boot .inner {
+  position: relative;
+}
+
+.boot h1 {
+  color: #f3f2ff;
+  letter-spacing: -0.025em;
+}
+
+.boot h1::after {
+  content: 'GOVERNED AGENT OPERATIONS';
+  display: block;
+  margin-top: 7px;
+  color: #8177b7;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.19em;
+}
+
+.boot .bar i {
+  background: linear-gradient(90deg, #7868e7, #59d7cf);
+  box-shadow: 0 0 18px rgba(103, 104, 230, 0.28);
+}
+
+.fps {
+  border-color: rgba(90, 217, 208, 0.12);
+}
+
+.toast {
+  border-color: rgba(139, 124, 255, 0.2);
+}
+
+@media (max-width: 720px) {
+  .sk-systembar {
+    padding-inline: 10px;
+  }
+
+  .sk-brand-copy small {
+    display: none;
+  }
+}

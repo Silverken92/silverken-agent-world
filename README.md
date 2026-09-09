@@ -8,7 +8,7 @@ This repository is a fork of **[Station-Sciences/bot-crossing](https://github.co
 
 ## Status
 
-**Current milestone: AW3 — Live Agency Agent View**
+**Current milestone: AW4 — SilverKen Visual Identity**
 
 | Capability | Status |
 | --- | --- |
@@ -19,11 +19,10 @@ This repository is a fork of **[Station-Sciences/bot-crossing](https://github.co
 | Agency Agent harness | ✅ SilverKen extension |
 | Agency Agent state mapping | ✅ tested |
 | Read-only governance boundary | ✅ enforced by adapter contract |
-| Agency Agent health detection | ✅ implemented |
-| Missing/invalid token diagnostics | ✅ implemented |
+| Agency Agent health/auth diagnostics | ✅ implemented and CI tested |
 | Fixture-backed live API scan | ✅ tested |
 | Real local Agency Agent smoke | ⏭️ requires operator machine/token |
-| SilverKen full visual identity | ⏭️ AW4 |
+| SilverKen product skin / branding | ✅ AW4 implementation |
 | GitHub / PR / CI enrichment | ⏭️ AW5 |
 | Governed deep navigation | ⏭️ AW6 |
 | Governed actions | ⏭️ AW7 |
@@ -56,6 +55,21 @@ SilverKen Agent World
 ```
 
 **Authority stays in Agency Agent.** Agent World is a visualization consumer. It does not bypass RBAC, SilverGuard, verification, approvals, release gates or audit controls.
+
+## Visual identity
+
+AW4 keeps the upstream Three.js/HUD implementation intact and layers SilverKen product styling over it:
+
+```text
+upstream HUD + render engine
+           ↓
+silverken.css
+silverken-brand.js
+           ↓
+SilverKen Agent World
+```
+
+The interface uses a graphite/silver base, violet identity accents, cyan live-system signals and an explicit **Governed view / Read only** indicator. See [`docs/visual-identity.md`](docs/visual-identity.md).
 
 ## Requirements
 
@@ -122,8 +136,8 @@ High-level sequence:
 ```text
 AW1  Bridge contract                ✅
 AW2  Repo bootstrap + adapter       ✅
-AW3  Live Agency Agent view         🚧
-AW4  SilverKen visual identity      ⏭️
+AW3  Live Agency Agent code         ✅  real-machine smoke pending
+AW4  SilverKen visual identity      🚧
 AW5  GitHub/PR/CI enrichment        ⏭️
 AW6  Governed navigation            ⏭️
 AW7  Optional governed actions      ⏭️
