@@ -19,12 +19,49 @@ function task(status, overrides = {}) {
     execution_model: 'ORCHESTRATED',
     workspace_isolation: {
       mode: 'WORKTREE',
-      workspace_id: 'aw3-worktree',
-      integration_target: 'aw3/live-agency-agent',
+      workspace_id: 'aw5-worktree',
+      integration_target: 'aw5/operational-enrichment',
     },
     created_at: '2026-09-09T20:00:00Z',
     updated_at: '2026-09-09T20:05:00Z',
     ...overrides,
+  }
+}
+
+function snapshotRecord(status = 'FINAL_REVIEW') {
+  return {
+    task: task(status),
+    verification: { total: 4, pass: 3, fail: 0, unknown: 1, not_run: 0 },
+    activity: {
+      event_count: 12,
+      latest_event_type: 'AGENT_COMPLETED',
+      latest_event_at: '2026-09-09T20:06:00Z',
+      latest_agent_id: 'SilverGuard',
+      token_usage: 12345,
+      cost_by_currency: { USD: 0.0425 },
+    },
+    evaluator: {
+      evaluation_id: 'eval-1',
+      evaluator_id: 'independent-evaluator',
+      verdict: 'PASS',
+      security_required: true,
+      created_at: '2026-09-09T20:05:10Z',
+    },
+    silverguard: {
+      review_id: 'security-1',
+      reviewer_id: 'SilverGuard',
+      disposition: 'PASS',
+      blocking_finding_count: 0,
+      residual_finding_count: 1,
+      approval_used: false,
+      created_at: '2026-09-09T20:05:30Z',
+    },
+    release: {
+      decision_id: 'release-1',
+      disposition: 'READY',
+      release_ready: true,
+      created_at: '2026-09-09T20:05:50Z',
+    },
   }
 }
 
@@ -80,10 +117,32 @@ test('Agency Agent thread ids are prefixed and refs contain no credentials', () 
   const thread = toThread(project, task('IN_PROGRESS'))
   assert.equal(thread.id, 'agency-agent:proj-1:task-in_progress')
   assert.equal(thread.source, 'agency-agent')
-  assert.equal(thread.gitBranch, 'aw3/live-agency-agent')
-  assert.equal(thread.worktree, 'aw3-worktree')
+  assert.equal(thread.gitBranch, 'aw5/operational-enrichment')
+  assert.equal(thread.worktree, 'aw5-worktree')
   assert.deepEqual(Object.keys(thread.ref).sort(), ['ownerAgent', 'projectId', 'status', 'taskId'])
   assert.equal(JSON.stringify(thread.ref).includes('token'), false)
+  assert.equal(thread.operational, null)
+})
+
+test('Agency Agent operational snapshot stays compact and does not fake PR merge evidence', () => {
+  const thread = toThread(project, snapshotRecord())
+  assert.equal(thread.operational.ownerAgent, 'Orchestrator')
+  assert.equal(thread.operational.activity.latestAgentId, 'SilverGuard')
+  assert.equal(thread.operational.activity.tokenUsage, 12345)
+  assert.deepEqual(thread.operational.activity.costByCurrency, { USD: 0.0425 })
+  assert.deepEqual(thread.operational.verification, {
+    total: 4,
+    pass: 3,
+    fail: 0,
+    unknown: 1,
+    notRun: 0,
+  })
+  assert.equal(thread.operational.evaluator.verdict, 'PASS')
+  assert.equal(thread.operational.silverguard.disposition, 'PASS')
+  assert.equal(thread.operational.release.releaseReady, true)
+  assert.equal(thread.prState, undefined)
+  assert.match(thread.model, /^SKOPS:/)
+  assert.equal(thread.lastActivityAt, Date.parse('2026-09-09T20:06:00Z'))
 })
 
 test('Agency Agent bridge is read-only', () => {
@@ -120,7 +179,7 @@ test('Agency Agent reports an invalid token without throwing the colony scan', a
   assert.deepEqual(await agencyAgent.scanThreads(), [])
 })
 
-test('Agency Agent live scan reads projects and tasks with server-side bearer auth', async (t) => {
+test('Agency Agent live scan consumes one bounded operational snapshot per project', async (t) => {
   preserveProcessState(t)
   process.env.AGENCY_AGENT_URL = 'http://localhost:9999/'
   process.env.AGENCY_AGENT_TOKEN = 'aa_fixture_secret'
@@ -134,8 +193,8 @@ test('Agency Agent live scan reads projects and tasks with server-side bearer au
     }
     assert.equal(options.headers?.Authorization, 'Bearer aa_fixture_secret')
     if (String(url).endsWith('/api/v1/projects')) return jsonResponse([project])
-    if (String(url).endsWith('/api/v1/projects/proj-1/tasks')) {
-      return jsonResponse([task('NEEDS_USER_DECISION')])
+    if (String(url).endsWith('/api/v1/projects/proj-1/agent-world')) {
+      return jsonResponse({ schema_version: '1.0', project, tasks: [snapshotRecord('NEEDS_USER_DECISION')] })
     }
     return jsonResponse({ detail: 'not found' }, 404)
   }
@@ -146,8 +205,29 @@ test('Agency Agent live scan reads projects and tasks with server-side bearer au
   assert.equal(threads.length, 1)
   assert.equal(threads[0].unread, true)
   assert.equal(threads[0].project, 'Agency Agent')
+  assert.equal(threads[0].operational.silverguard.disposition, 'PASS')
+  assert.equal(threads[0].operational.activity.tokenUsage, 12345)
   assert.equal(JSON.stringify(threads[0]).includes('aa_fixture_secret'), false)
-  assert.ok(calls.some((call) => call.url === 'http://localhost:9999/api/v1/projects'))
+  assert.ok(calls.some((call) => call.url === 'http://localhost:9999/api/v1/projects/proj-1/agent-world'))
+  assert.equal(calls.some((call) => call.url.endsWith('/tasks')), false)
+})
+
+test('Agency Agent falls back to the AW3 task endpoint only when snapshot endpoint is absent', async (t) => {
+  preserveProcessState(t)
+  process.env.AGENCY_AGENT_TOKEN = 'aa_fixture_secret'
+
+  globalThis.fetch = async (url) => {
+    const value = String(url)
+    if (value.endsWith('/api/v1/projects')) return jsonResponse([project])
+    if (value.endsWith('/api/v1/projects/proj-1/agent-world')) return jsonResponse({ detail: 'not found' }, 404)
+    if (value.endsWith('/api/v1/projects/proj-1/tasks')) return jsonResponse([task('IN_PROGRESS')])
+    return jsonResponse({ detail: 'not found' }, 404)
+  }
+
+  const threads = await agencyAgent.scanThreads()
+  assert.equal(threads.length, 1)
+  assert.equal(threads[0].running, true)
+  assert.equal(threads[0].operational, null)
 })
 
 test('Agency Agent stays absent when the Operator API health endpoint is unavailable', async (t) => {

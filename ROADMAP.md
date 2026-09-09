@@ -9,6 +9,7 @@ SilverKen Agent World evolves Bot Crossing into a governed visual operations sur
 3. No adapter writes to harness-owned files or databases.
 4. Credentials remain server-side.
 5. Upstream Bot Crossing improvements are synced selectively, not blindly.
+6. Agency Agent release readiness and GitHub PR merge state remain separate evidence domains.
 
 ## AW1 — Bridge Contract ✅
 
@@ -58,13 +59,13 @@ Code/CI complete:
 - [ ] exercise against a real operator machine with a real Agency Agent API token;
 - [ ] observe real task state transitions in the running colony.
 
-AW3 remains operator-smoke pending because the Operator API is intentionally local/private.
+AW3 remains operator-smoke pending because the Operator API is intentionally local/private. The exact procedure is documented in `docs/local-smoke.md`.
 
-## AW4 — SilverKen Visual Identity 🚧
+## AW4 — SilverKen Visual Identity ✅
 
 Goal: make the product visually distinct while retaining the proven colony engine and keeping upstream sync inexpensive.
 
-Implemented on the AW4 branch:
+Completed evidence:
 
 - [x] dedicated `silverken.css` product skin rather than rewriting upstream HUD CSS;
 - [x] dedicated idempotent branding layer rather than forking `hud.js` wholesale;
@@ -76,28 +77,59 @@ Implemented on the AW4 branch:
 - [x] `repo` → `project` and `conversation` → `session` product vocabulary where appropriate;
 - [x] SilverKen help/governance explanation;
 - [x] visual identity architecture documentation;
-- [ ] AW4 PR quality gate passes;
-- [ ] squash merge to `main`;
-- [ ] post-merge `main` quality gate passes.
+- [x] PR #3 quality gate passes;
+- [x] squash merge to `main` at `35530844900e8a6b06149251d88007238e59b051`;
+- [x] post-merge `main` quality gate passes.
 
-Role-specific operational evidence (SilverGuard, evaluator, release, GitHub CI) moves to AW5 so AW4 stays a pure presentation layer with no new data coupling.
+Role-specific operational evidence intentionally moved to AW5 so AW4 remained a presentation-only layer.
 
-## AW5 — Operational Enrichment
+## AW5 — Operational Enrichment 🚧
 
-Goal: surface high-value delivery context next to the world.
+Goal: surface high-value delivery context next to the world without turning Agent World into a second evidence store.
 
-Candidate data:
+### AW5A — Governed Agency Agent evidence ✅ implementation + CI
 
-- task owner/role;
-- verification state and counts;
-- SilverGuard disposition;
-- release readiness;
-- branch/worktree;
-- GitHub PR number/state;
-- CI status;
-- token/cost/runtime metrics when authoritative data is available.
+Agency Agent side:
 
-GitHub data must be treated as evidence/context, not as a replacement for Agency Agent release gates.
+- [x] add one bounded read-only project snapshot: `GET /api/v1/projects/{project_id}/agent-world`;
+- [x] require bearer authentication and explicit project/task/run/evidence/security read permissions;
+- [x] compact task fields rather than returning the complete task contract;
+- [x] aggregate verification counts;
+- [x] expose latest agent/activity plus token/cost telemetry;
+- [x] expose compact independent Evaluator verdict;
+- [x] expose compact SilverGuard disposition/finding counts;
+- [x] expose compact Agency Agent release disposition/readiness;
+- [x] exclude raw evidence bodies, summaries, acceptance checks, policy and credentials;
+- [x] Agency Agent PR #13 Repository Quality passes — 71 tests plus PostgreSQL/container production gates;
+- [x] squash merge to Agency Agent `main` at `dc9cf4b4726d2ee686655d5d2221fce169261978`;
+- [x] post-merge Agency Agent Repository Quality passes all three jobs.
+
+Agent World side:
+
+- [x] consume one `/agent-world` snapshot per project;
+- [x] retain `/tasks` fallback only for an older API returning 404;
+- [x] surface execution model, owner and most recent agent;
+- [x] surface verification counts;
+- [x] surface Evaluator and SilverGuard verdict/disposition;
+- [x] surface Agency Agent release readiness without setting `prState`;
+- [x] surface compact token/cost telemetry;
+- [x] keep enrichment in additive SilverKen UI modules instead of rewriting the upstream HUD;
+- [x] add local smoke instructions for Windows/macOS/Linux;
+- [x] Agent World PR #4 quality gate passes — 47/47 tests, runtime audit and production build;
+- [ ] squash merge Agent World PR #4 to `main`;
+- [ ] post-merge Agent World quality gate passes;
+- [ ] real-machine smoke with local Agency Agent token.
+
+### AW5B — GitHub / PR / CI context ⏭️
+
+Still planned:
+
+- explicitly linked GitHub PR number/state;
+- CI/check status;
+- real merged-PR evidence for celebration behavior;
+- links/evidence useful for AW6 navigation.
+
+GitHub data must remain evidence/context and must not replace Agency Agent release gates.
 
 ## AW6 — Governed Navigation
 
@@ -110,7 +142,7 @@ Examples:
 - open repository/worktree;
 - open relevant logs/evidence.
 
-Navigation must not mutate governed state.
+Navigation must not mutate governed state, and no bearer token may appear in a URL.
 
 ## AW7 — Optional Governed Actions
 
