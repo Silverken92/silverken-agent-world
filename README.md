@@ -8,7 +8,7 @@ This repository is a fork of **[Station-Sciences/bot-crossing](https://github.co
 
 ## Status
 
-**Current milestone: AW2 — Bootstrap + Agency Agent bridge**
+**Current milestone: AW3 — Live Agency Agent View**
 
 | Capability | Status |
 | --- | --- |
@@ -19,6 +19,10 @@ This repository is a fork of **[Station-Sciences/bot-crossing](https://github.co
 | Agency Agent harness | ✅ SilverKen extension |
 | Agency Agent state mapping | ✅ tested |
 | Read-only governance boundary | ✅ enforced by adapter contract |
+| Agency Agent health detection | ✅ implemented |
+| Missing/invalid token diagnostics | ✅ implemented |
+| Fixture-backed live API scan | ✅ tested |
+| Real local Agency Agent smoke | ⏭️ requires operator machine/token |
 | SilverKen full visual identity | ⏭️ AW4 |
 | GitHub / PR / CI enrichment | ⏭️ AW5 |
 | Governed deep navigation | ⏭️ AW6 |
@@ -34,7 +38,7 @@ Agency Agent
   Durable Knowledge
   Operator API
        │
-       │ authenticated GET only
+       │ public /health + authenticated GET
        ▼
 server/harnesses/agency-agent.mjs
        │
@@ -78,9 +82,9 @@ export AGENCY_AGENT_TOKEN=aa_your_token_here
 npm run dev
 ```
 
-If no Agency Agent token is configured, the harness simply reports itself as unavailable and the other supported harnesses continue to work.
+AW3 detects Agency Agent through its public `/health` endpoint. If the service is running but the token is missing, invalid or under-authorized, the harness status reports the reason instead of silently disappearing. Other supported harnesses continue working independently.
 
-See [`docs/agency-agent.md`](docs/agency-agent.md) for the integration contract and security boundary.
+See [`docs/agency-agent.md`](docs/agency-agent.md) for the integration contract, diagnostics and security boundary.
 
 ## Agency Agent state mapping
 
@@ -102,11 +106,12 @@ The mapping intentionally visualizes operational state; it does **not** create a
 ## Quality
 
 ```bash
+npm audit --omit=dev --audit-level=high
 npm test
 npm run build
 ```
 
-Repository CI runs both commands on pull requests and pushes to `main`.
+Repository CI runs runtime dependency audit, tests and production build on pull requests and pushes to `main`.
 
 ## Roadmap
 
@@ -116,8 +121,8 @@ High-level sequence:
 
 ```text
 AW1  Bridge contract                ✅
-AW2  Repo bootstrap + live adapter  🚧
-AW3  Live Agency Agent view         ⏭️
+AW2  Repo bootstrap + adapter       ✅
+AW3  Live Agency Agent view         🚧
 AW4  SilverKen visual identity      ⏭️
 AW5  GitHub/PR/CI enrichment        ⏭️
 AW6  Governed navigation            ⏭️
@@ -138,7 +143,7 @@ This fork deliberately keeps the Bot Crossing harness seam and read-only philoso
 - no writes into external harness data;
 - Agency Agent access uses its Operator API, never direct database reads;
 - API tokens stay server-side and are never put into thread `ref`, colony state or client payloads;
-- first bridge uses read-only API calls;
+- bridge API calls remain read-only;
 - visual state never constitutes release approval or security evidence.
 
 ---
