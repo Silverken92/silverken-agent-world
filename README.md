@@ -23,10 +23,10 @@ This repository is a fork of **[Station-Sciences/bot-crossing](https://github.co
 | Fixture-backed live API scan | ✅ tested |
 | SilverKen product skin / branding | ✅ AW4 |
 | Bounded Agency Agent operational snapshot | ✅ Agency Agent main |
-| Verification / Evaluator / SilverGuard / release badges | ✅ AW5 implementation |
-| Token/cost operational telemetry | ✅ AW5 implementation |
+| Verification / Evaluator / SilverGuard / release badges | ✅ AW5A main |
+| Token/cost operational telemetry | ✅ AW5A main |
 | Real local Agency Agent smoke | ⏭️ requires operator machine/token |
-| GitHub PR / CI enrichment | ⏭️ next AW5 increment |
+| GitHub PR / CI enrichment | ⏭️ AW5B |
 | Governed deep navigation | ⏭️ AW6 |
 | Governed actions | ⏭️ AW7 |
 
@@ -152,7 +152,7 @@ npm run build
 
 Repository CI runs runtime dependency audit, tests and production build on pull requests and pushes to `main`.
 
-AW5's current Agent World gate passes **47/47 tests**, runtime dependency audit and production Vite build. The matching Agency Agent snapshot API is squash-merged at `dc9cf4b4726d2ee686655d5d2221fce169261978`; its post-merge Repository Quality passes runtime/docs, PostgreSQL production smoke and constrained-container production smoke.
+AW5A is squash-merged to Agent World `main` at `d2d9d7e7d5f631edb1e0107bf5061581b14b4c31`; its post-merge quality gate passes **47/47 tests**, runtime dependency audit and production Vite build. The matching Agency Agent snapshot API is squash-merged at `dc9cf4b4726d2ee686655d5d2221fce169261978`; its post-merge Repository Quality passes runtime/docs, PostgreSQL production smoke and constrained-container production smoke.
 
 ## Roadmap
 
@@ -165,7 +165,8 @@ AW1  Bridge contract                     ✅
 AW2  Repo bootstrap + adapter            ✅
 AW3  Live Agency Agent code              ✅  real-machine smoke pending
 AW4  SilverKen visual identity           ✅
-AW5  Operational enrichment              🚧  Agency evidence implemented; GitHub/CI next
+AW5A Governed operational enrichment     ✅
+AW5B GitHub / PR / CI enrichment         ⏭️
 AW6  Governed navigation                 ⏭️
 AW7  Optional governed actions           ⏭️
 ```
