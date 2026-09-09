@@ -1,3 +1,4 @@
+import './operational.css'
 import { decodeOperationalModel, operationalBadges } from './operational.js'
 
 const BRAND_NAME = 'SilverKen Agent World'
