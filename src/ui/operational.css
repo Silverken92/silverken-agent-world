@@ -1,0 +1,47 @@
+/* AW5 operational enrichment. Kept separate from the AW4 skin so the data layer can evolve
+   without widening the upstream HUD conflict surface. */
+
+.thread-pop .sk-op {
+  max-width: 100%;
+  border-color: rgba(174, 190, 226, 0.1);
+  font-size: 9.5px;
+  font-weight: 680;
+  letter-spacing: 0.015em;
+}
+
+.thread-pop .sk-op.model {
+  color: #c7c0ff;
+  background: rgba(139, 124, 255, 0.09);
+  border-color: rgba(139, 124, 255, 0.2);
+}
+
+.thread-pop .sk-op.agent {
+  color: #9edbd8;
+  background: rgba(90, 217, 208, 0.065);
+  border-color: rgba(90, 217, 208, 0.16);
+}
+
+.thread-pop .sk-op.success {
+  color: #82e4b5;
+  background: rgba(85, 214, 158, 0.075);
+  border-color: rgba(85, 214, 158, 0.18);
+}
+
+.thread-pop .sk-op.pending {
+  color: #f1cf82;
+  background: rgba(241, 200, 107, 0.07);
+  border-color: rgba(241, 200, 107, 0.18);
+}
+
+.thread-pop .sk-op.danger {
+  color: #ff93a0;
+  background: rgba(255, 112, 131, 0.075);
+  border-color: rgba(255, 112, 131, 0.2);
+}
+
+.thread-pop .sk-op.metric {
+  color: #a9b8d2;
+  background: rgba(174, 190, 226, 0.045);
+  border-color: rgba(174, 190, 226, 0.09);
+  font-variant-numeric: tabular-nums;
+}
