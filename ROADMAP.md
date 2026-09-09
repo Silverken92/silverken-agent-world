@@ -87,7 +87,7 @@ Role-specific operational evidence intentionally moved to AW5 so AW4 remained a 
 
 Goal: surface high-value delivery context next to the world without turning Agent World into a second evidence store.
 
-### AW5A — Governed Agency Agent evidence ✅ implementation + CI
+### AW5A — Governed Agency Agent evidence ✅
 
 Agency Agent side:
 
@@ -116,9 +116,11 @@ Agent World side:
 - [x] keep enrichment in additive SilverKen UI modules instead of rewriting the upstream HUD;
 - [x] add local smoke instructions for Windows/macOS/Linux;
 - [x] Agent World PR #4 quality gate passes — 47/47 tests, runtime audit and production build;
-- [ ] squash merge Agent World PR #4 to `main`;
-- [ ] post-merge Agent World quality gate passes;
+- [x] squash merge Agent World PR #4 to `main` at `d2d9d7e7d5f631edb1e0107bf5061581b14b4c31`;
+- [x] post-merge Agent World quality gate passes;
 - [ ] real-machine smoke with local Agency Agent token.
+
+The only remaining AW3/AW5A proof is operator-machine live observation, because the Operator API intentionally remains local/private.
 
 ### AW5B — GitHub / PR / CI context ⏭️
 
