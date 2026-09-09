@@ -1,3 +1,5 @@
+import { decodeOperationalModel, operationalBadges } from './operational.js'
+
 const BRAND_NAME = 'SilverKen Agent World'
 
 const STAT_LABELS = {
@@ -16,6 +18,29 @@ function replaceButtonText(button, text) {
     if (node.textContent !== next) node.textContent = next
   } else {
     button.append(next)
+  }
+}
+
+function applyOperationalBadges(root = document) {
+  for (const tag of root.querySelectorAll('.thread-pop .meta .tag')) {
+    const data = decodeOperationalModel(tag.textContent || '')
+    if (!data) continue
+
+    const badges = operationalBadges(data)
+    if (!badges.length) {
+      tag.remove()
+      continue
+    }
+
+    const fragment = document.createDocumentFragment()
+    for (const badge of badges) {
+      const el = document.createElement('span')
+      el.className = `tag sk-op ${badge.tone}`
+      el.textContent = badge.label
+      if (badge.title) el.title = badge.title
+      fragment.appendChild(el)
+    }
+    tag.replaceWith(fragment)
   }
 }
 
@@ -50,7 +75,7 @@ function applyBrand(root = document) {
     const note = document.createElement('div')
     note.className = 'sk-governance-note'
     note.textContent =
-      'Agent World is a read-only operations surface. A badge or animation is context, never release approval or security evidence.'
+      'Agent World is a read-only operations surface. Verification, Evaluator, SilverGuard and release badges summarize Agency Agent evidence; they never replace the authoritative records.'
     helpSub.insertAdjacentElement('afterend', note)
   }
 
@@ -84,6 +109,8 @@ function applyBrand(root = document) {
 
   const shot = root.querySelector('#btn-shot')
   if (shot && shot.title !== 'Capture Agent World (P)') shot.title = 'Capture Agent World (P)'
+
+  applyOperationalBadges(root)
 }
 
 let scheduled = false
@@ -104,4 +131,4 @@ if (app) {
   observer.observe(app, { childList: true, subtree: true, characterData: true })
 }
 
-export { BRAND_NAME, STAT_LABELS, applyBrand }
+export { BRAND_NAME, STAT_LABELS, applyBrand, applyOperationalBadges }
