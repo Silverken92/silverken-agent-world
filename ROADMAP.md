@@ -138,7 +138,7 @@ Agent World side:
 - [x] real-machine smoke with local Agency Agent token;
 - [x] real Agency Agent project/task visible in the 3D colony with `SINGLE_AGENT` and `Owner · Orchestrator` context.
 
-### AW5B — GitHub / PR / CI context 🚧 implementation + CI green
+### AW5B — GitHub / PR / CI context ⚙️ code + main CI complete
 
 Goal: add delivery evidence without confusing GitHub state with Agency Agent governance.
 
@@ -157,8 +157,8 @@ Implementation evidence:
 - [x] GitHub failures/rate limits/auth failures degrade to the original harness thread;
 - [x] configuration and security documentation in `docs/github-context.md`;
 - [x] PR #7 quality gate passes — 59/59 tests, runtime audit and production build;
-- [ ] squash merge PR #7 to `main`;
-- [ ] post-merge `main` quality gate passes;
+- [x] squash merge PR #7 to `main` at `3b70f947121f4eca3637c47e2087d79243f52f59`;
+- [x] post-merge `main` quality gate passes;
 - [ ] real-machine smoke against an actual mapped GitHub repository/branch/PR.
 
 Agency Agent `Livraison · PRÊT` and GitHub `PR #… · FUSIONNÉE` remain deliberately separate evidence domains.

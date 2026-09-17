@@ -27,7 +27,7 @@ This repository is a fork of **[Station-Sciences/bot-crossing](https://github.co
 | Verification / Evaluator / SilverGuard / release badges | ✅ AW5A main |
 | Token/cost operational telemetry | ✅ AW5A main |
 | Real Agency Agent data in 3D colony | ✅ AW5A operator smoke |
-| GitHub PR / CI enrichment | 🚧 AW5B implementation + CI green |
+| GitHub PR / CI enrichment | ✅ AW5B main; mapped-repo smoke pending |
 | Governed deep navigation | ⏭️ AW6 |
 | Governed actions | ⏭️ AW7 |
 
@@ -183,7 +183,7 @@ FR/EN localization              52 tests + audit + build ✅
 AW5B PR/CI implementation       59 tests + audit + build ✅
 ```
 
-The Agency Agent snapshot API is squash-merged at `dc9cf4b4726d2ee686655d5d2221fce169261978`. Agent World AW5A is merged at `d2d9d7e7d5f631edb1e0107bf5061581b14b4c31`; FR/EN localization is merged at `70fb8d82359eeb43a2f97be3343c7466fcb85e07`. AW5B merge evidence is recorded in the roadmap after promotion to `main`.
+The Agency Agent snapshot API is squash-merged at `dc9cf4b4726d2ee686655d5d2221fce169261978`. Agent World AW5A is merged at `d2d9d7e7d5f631edb1e0107bf5061581b14b4c31`; FR/EN localization is merged at `70fb8d82359eeb43a2f97be3343c7466fcb85e07`; AW5B is squash-merged at `3b70f947121f4eca3637c47e2087d79243f52f59`, with a successful post-merge `main` quality gate.
 
 ## Roadmap
 
@@ -198,7 +198,7 @@ AW3  Live Agency Agent view              ✅ real-machine smoke
 AW4  SilverKen visual identity           ✅
 I18N French / English UI                 ✅
 AW5A Governed operational enrichment     ✅ real 3D smoke
-AW5B GitHub / PR / CI enrichment         🚧 implementation + CI green
+AW5B GitHub / PR / CI enrichment         ✅ code + main CI; mapped-repo smoke pending
 AW6  Governed navigation                 ⏭️
 AW7  Optional governed actions           ⏭️
 ```
