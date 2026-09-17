@@ -40,11 +40,11 @@ Completed evidence:
 - [x] squash merge to `main` at `1705be2f823f30a18352561b5460d98da28bb314`;
 - [x] post-merge `main` quality gate passes.
 
-## AW3 — Live Agency Agent View ⚙️
+## AW3 — Live Agency Agent View ✅
 
 Goal: prove end-to-end operation against a real local Agency Agent instance and make connection failures understandable.
 
-Code/CI complete:
+Completed evidence:
 
 - [x] detect the Agency Agent Operator API through public `/health`;
 - [x] keep bearer authentication server-side;
@@ -56,10 +56,11 @@ Code/CI complete:
 - [x] PR #2 quality gate passes;
 - [x] squash merge to `main` at `476e1a36f06edc32e4d0a76dc27f9c89173d6fc9`;
 - [x] post-merge `main` quality gate passes;
-- [ ] exercise against a real operator machine with a real Agency Agent API token;
-- [ ] observe real task state transitions in the running colony.
+- [x] exercise against a real Windows operator machine with a real Agency Agent API token;
+- [x] verify `/health`, authenticated harness discovery and real `/api/threads` data;
+- [x] observe real Agency Agent project `Tuce` and task in the running 3D colony.
 
-AW3 remains operator-smoke pending because the Operator API is intentionally local/private. The exact procedure is documented in `docs/local-smoke.md`.
+The real-machine smoke confirmed `Agency Agent detected=true`, no harness diagnostic, an authenticated Agency Agent thread, and the `Tuce` zone/astronaut rendered in the live colony.
 
 ## AW4 — SilverKen Visual Identity ✅
 
@@ -81,7 +82,23 @@ Completed evidence:
 - [x] squash merge to `main` at `35530844900e8a6b06149251d88007238e59b051`;
 - [x] post-merge `main` quality gate passes.
 
-Role-specific operational evidence intentionally moved to AW5 so AW4 remained a presentation-only layer.
+## FR/EN Localization ✅
+
+Goal: make the 3D operational surface usable in French without making localization an expensive upstream fork.
+
+Completed evidence:
+
+- [x] additive `i18n.js` / `i18n.css` layer;
+- [x] compact FR/EN selector in the SilverKen header;
+- [x] browser-language detection on first use;
+- [x] locally persisted language preference;
+- [x] reversible French/English SilverKen governance labels and primary HUD actions;
+- [x] French settings/help/operator vocabulary and relative activity times;
+- [x] French Agency Agent operational evidence badges without changing evidence semantics;
+- [x] preserve upstream `hud.js` unchanged for this slice;
+- [x] PR #6 quality gate passes — 52/52 tests, runtime audit and production build;
+- [x] squash merge to `main` at `70fb8d82359eeb43a2f97be3343c7466fcb85e07`;
+- [x] post-merge `main` quality gate passes.
 
 ## AW5 — Operational Enrichment 🚧
 
@@ -118,20 +135,33 @@ Agent World side:
 - [x] Agent World PR #4 quality gate passes — 47/47 tests, runtime audit and production build;
 - [x] squash merge Agent World PR #4 to `main` at `d2d9d7e7d5f631edb1e0107bf5061581b14b4c31`;
 - [x] post-merge Agent World quality gate passes;
-- [ ] real-machine smoke with local Agency Agent token.
+- [x] real-machine smoke with local Agency Agent token;
+- [x] real Agency Agent project/task visible in the 3D colony with `SINGLE_AGENT` and `Owner · Orchestrator` context.
 
-The only remaining AW3/AW5A proof is operator-machine live observation, because the Operator API intentionally remains local/private.
+### AW5B — GitHub / PR / CI context 🚧 implementation + CI green
 
-### AW5B — GitHub / PR / CI context ⏭️
+Goal: add delivery evidence without confusing GitHub state with Agency Agent governance.
 
-Still planned:
+Implementation evidence:
 
-- explicitly linked GitHub PR number/state;
-- CI/check status;
-- real merged-PR evidence for celebration behavior;
-- links/evidence useful for AW6 navigation.
+- [x] optional GitHub enrichment disabled by default;
+- [x] server-side token only; no GitHub credential in normalized thread, `ref`, SKOPS payload or colony state;
+- [x] GET-only GitHub API access;
+- [x] 30-second local cache and bounded request timeout;
+- [x] automatic `github.com` origin/branch resolution for local harness checkouts;
+- [x] explicit Agency Agent project → GitHub repository mapping when no local repo path is available;
+- [x] pull-request number/state context;
+- [x] checks + legacy status aggregation into PASS / FAIL / PENDING / NONE;
+- [x] real GitHub `merged_at` evidence is the only GitHub source that sets `prState=MERGED`;
+- [x] compact GitHub / PR / CI badges on Agency Agent cards in English and French;
+- [x] GitHub failures/rate limits/auth failures degrade to the original harness thread;
+- [x] configuration and security documentation in `docs/github-context.md`;
+- [x] PR #7 quality gate passes — 59/59 tests, runtime audit and production build;
+- [ ] squash merge PR #7 to `main`;
+- [ ] post-merge `main` quality gate passes;
+- [ ] real-machine smoke against an actual mapped GitHub repository/branch/PR.
 
-GitHub data must remain evidence/context and must not replace Agency Agent release gates.
+Agency Agent `Livraison · PRÊT` and GitHub `PR #… · FUSIONNÉE` remain deliberately separate evidence domains.
 
 ## AW6 — Governed Navigation
 

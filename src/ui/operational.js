@@ -42,6 +42,78 @@ function verdictLabel(value, locale) {
   return labels[normalized] || String(value || '')
 }
 
+function githubPrLabel(value, locale) {
+  const normalized = String(value || '').toUpperCase()
+  if (normalizeLocale(locale) !== 'fr') return normalized
+  const labels = { OPEN: 'OUVERTE', CLOSED: 'FERMÉE', MERGED: 'FUSIONNÉE' }
+  return labels[normalized] || normalized
+}
+
+function githubPrTone(value) {
+  const normalized = String(value || '').toUpperCase()
+  if (normalized === 'MERGED') return 'success'
+  if (normalized === 'CLOSED') return 'danger'
+  return 'pending'
+}
+
+function githubCiLabel(value, locale) {
+  const normalized = String(value || '').toUpperCase()
+  if (normalizeLocale(locale) !== 'fr') return normalized
+  const labels = { PASS: 'OK', FAIL: 'ÉCHEC', PENDING: 'EN COURS', NONE: 'AUCUN' }
+  return labels[normalized] || normalized
+}
+
+function githubCiTone(value) {
+  const normalized = String(value || '').toUpperCase()
+  if (normalized === 'PASS') return 'success'
+  if (normalized === 'FAIL') return 'danger'
+  return normalized === 'NONE' ? 'neutral' : 'pending'
+}
+
+function githubBadges(data, locale) {
+  const github = data?.h
+  if (!github || typeof github !== 'object' || Array.isArray(github)) return []
+  const fr = normalizeLocale(locale) === 'fr'
+  const badges = []
+  const repo = String(github.q || '').trim()
+  const number = Number(github.n) || 0
+  const prState = String(github.s || '').trim().toUpperCase()
+  const ciState = String(github.c || 'NONE').trim().toUpperCase()
+  const passed = Math.max(0, Number(github.p) || 0)
+  const failed = Math.max(0, Number(github.f) || 0)
+  const pending = Math.max(0, Number(github.w) || 0)
+  const total = Math.max(0, Number(github.t) || 0)
+
+  if (repo) {
+    badges.push({
+      label: `GitHub · ${repo}`,
+      tone: 'neutral',
+      title: fr ? 'Dépôt GitHub observé en lecture seule' : 'Read-only observed GitHub repository',
+    })
+  }
+  if (number && prState) {
+    badges.push({
+      label: `PR #${number} · ${githubPrLabel(prState, locale)}`,
+      tone: githubPrTone(prState),
+      title: fr
+        ? 'État réel de la pull request GitHub ; distinct de la porte de livraison Agency Agent'
+        : 'Actual GitHub pull request state; separate from the Agency Agent release gate',
+    })
+  }
+  if (ciState !== 'NONE' || total > 0) {
+    const ratio = total > 0 ? ` · ${passed}/${total}` : ''
+    const detail = fr
+      ? `${passed} réussi · ${failed} échec · ${pending} en cours`
+      : `${passed} passed · ${failed} failed · ${pending} pending`
+    badges.push({
+      label: `CI · ${githubCiLabel(ciState, locale)}${ratio}`,
+      tone: githubCiTone(ciState),
+      title: detail,
+    })
+  }
+  return badges
+}
+
 export function operationalBadges(data, locale = 'en') {
   if (!data || typeof data !== 'object') return []
   const lang = normalizeLocale(locale)
@@ -89,6 +161,8 @@ export function operationalBadges(data, locale = 'en') {
       fr ? 'Porte de livraison Agency Agent ; ne constitue pas une preuve de fusion GitHub' : 'Agency Agent release gate; not GitHub merge evidence'
     )
   }
+
+  badges.push(...githubBadges(data, lang))
 
   const tokens = compactNumber(data.t)
   if (tokens) add(`${tokens} ${t('tokens', lang)}`, 'metric', fr ? 'Utilisation agrégée des jetons de la tâche' : 'Aggregated task token usage')
