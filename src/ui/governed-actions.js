@@ -4,6 +4,8 @@ const ACTIONS = {
   VERIFY: 'REQUEST_VERIFICATION_RETRY',
 }
 
+const governedActionStates = new Map()
+
 function actionForStatus(status) {
   if (status === 'RISK_ACCEPTANCE_REQUIRED') return ACTIONS.RISK
   if (status === 'FAILED_VERIFICATION') return ACTIONS.VERIFY
@@ -39,6 +41,31 @@ function governedActionModel(data, locale = 'en') {
   const status = typeof data?.x?.s === 'string' ? data.x.s : ''
   const action = actionForStatus(status)
   return { threadId, status, action, ...copyFor(action, locale) }
+}
+
+function governedActionKey(model) {
+  return `${model?.threadId || ''}\u0000${model?.action || ''}`
+}
+
+function governedActionState(model) {
+  return governedActionStates.get(governedActionKey(model)) || ''
+}
+
+function setGovernedActionState(model, state) {
+  const key = governedActionKey(model)
+  if (!model?.threadId || !model?.action) return
+  if (state) governedActionStates.set(key, state)
+  else governedActionStates.delete(key)
+}
+
+function clearGovernedActionStates() {
+  governedActionStates.clear()
+}
+
+function actionStateCopy(state, locale, model) {
+  if (state === 'pending') return locale === 'fr' ? 'Enregistrement…' : 'Recording…'
+  if (state === 'recorded') return locale === 'fr' ? 'Demande enregistrée ✓' : 'Request recorded ✓'
+  return model.label
 }
 
 async function submitGovernedAction(model, rationale, fetchImpl = fetch) {
@@ -78,7 +105,9 @@ function renderGovernedAction(card, data, locale = 'en') {
   const button = document.createElement('button')
   button.type = 'button'
   button.className = 'btn sk-governed-action'
-  button.textContent = model.label
+  const initialState = governedActionState(model)
+  button.disabled = initialState === 'pending' || initialState === 'recorded'
+  button.textContent = actionStateCopy(initialState, locale, model)
   button.title = locale === 'fr'
     ? 'Enregistre une demande gouvernée dans Agency Agent ; aucune action sensible n’est exécutée directement'
     : 'Records a governed request in Agency Agent; no sensitive action is executed directly'
@@ -91,13 +120,15 @@ function renderGovernedAction(card, data, locale = 'en') {
       return
     }
 
+    setGovernedActionState(model, 'pending')
     button.disabled = true
-    const pending = locale === 'fr' ? 'Enregistrement…' : 'Recording…'
-    button.textContent = pending
+    button.textContent = actionStateCopy('pending', locale, model)
     try {
       await submitGovernedAction(model, clean)
-      button.textContent = locale === 'fr' ? 'Demande enregistrée ✓' : 'Request recorded ✓'
+      setGovernedActionState(model, 'recorded')
+      button.textContent = actionStateCopy('recorded', locale, model)
     } catch (error) {
+      setGovernedActionState(model, '')
       button.disabled = false
       button.textContent = model.label
       window.alert(error.message)
@@ -106,4 +137,15 @@ function renderGovernedAction(card, data, locale = 'en') {
   wrap.appendChild(button)
 }
 
-export { ACTIONS, actionForStatus, copyFor, governedActionModel, renderGovernedAction, submitGovernedAction }
+export {
+  ACTIONS,
+  actionForStatus,
+  actionStateCopy,
+  clearGovernedActionStates,
+  copyFor,
+  governedActionModel,
+  governedActionState,
+  renderGovernedAction,
+  setGovernedActionState,
+  submitGovernedAction,
+}
