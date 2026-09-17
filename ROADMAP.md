@@ -1,11 +1,11 @@
 # SilverKen Agent World Roadmap
 
-SilverKen Agent World evolves Bot Crossing into a governed visual operations surface for Agency Agent while preserving the local-first, read-only harness boundary.
+SilverKen Agent World evolves Bot Crossing into a governed visual operations surface for Agency Agent while preserving a narrow, explicit trust boundary.
 
 ## Principles
 
 1. Agency Agent remains authoritative for task state, approvals, verification, security and release decisions.
-2. Agent World is read-only until a later slice explicitly introduces governed actions through Agency Agent APIs.
+2. Agent World may navigate and record explicitly governed requests, but it is not an execution authority.
 3. No adapter writes to harness-owned files or databases.
 4. Credentials remain server-side.
 5. Upstream Bot Crossing improvements are synced selectively, not blindly.
@@ -60,7 +60,7 @@ Completed evidence:
 
 - additive `silverken.css` product skin;
 - idempotent branding layer;
-- SilverKen monogram/header and `Governed view / Read only` indicator;
+- SilverKen monogram/header and governed-view indicator;
 - graphite/silver + violet/cyan palette;
 - operator-oriented vocabulary and help surface;
 - PR #3 merged at `35530844900e8a6b06149251d88007238e59b051`;
@@ -90,7 +90,7 @@ Goal: surface high-value delivery context without turning Agent World into a sec
 
 Agency Agent side:
 
-- one bounded read-only project snapshot: `GET /api/v1/projects/{project_id}/agent-world`;
+- one bounded project snapshot: `GET /api/v1/projects/{project_id}/agent-world`;
 - bearer auth + scoped read permissions;
 - compact task contract;
 - verification counts, latest agent/activity, token/cost telemetry;
@@ -126,8 +126,7 @@ Implementation evidence:
 - PR number/state and checks + legacy status aggregation;
 - real GitHub `merged_at` is the only GitHub evidence that sets `prState=MERGED`;
 - compact GitHub / PR / CI badges in English and French;
-- GitHub failures/rate limits/auth failures degrade to the original harness thread;
-- configuration and security documentation in `docs/github-context.md` and `docs/github-branch-overrides.md`.
+- GitHub failures/rate limits/auth failures degrade to the original harness thread.
 
 Quality evidence:
 
@@ -139,55 +138,66 @@ Quality evidence:
 Real-machine smoke evidence:
 
 - real Windows Operator machine;
-- Agency Agent harness `detected=true` with authenticated `Tuce` thread;
-- `Tuce` explicitly mapped to `Silverken92/silverken-agent-world`;
-- `Tuce` explicitly mapped to branch `smoke/aw5b-live`;
-- real PR #11 detected as `OPEN`;
-- real GitHub Actions result detected as `CI PASS 1/1`;
+- real PR #11 detected as `OPEN` with `CI PASS 1/1`;
 - PR #11 squash-merged at `de81cba747307e0823bb6c6c99b93eb8cf7950a5`;
-- same live thread refreshed to `prState=MERGED` while CI remained PASS;
-- smoke marker removed after validation.
+- same live thread refreshed to `prState=MERGED` while CI remained PASS.
 
 Agency Agent `Livraison · PRÊT` and GitHub `PR #… · FUSIONNÉE` remain deliberately separate evidence domains.
 
-## AW6 — Governed Navigation ⏭️ CURRENT
+## AW6 — Governed Navigation ✅
 
-Goal: make Agent World a fast visual entry point into authoritative systems while remaining read-only.
+Goal: make Agent World a fast visual entry point into authoritative systems without mutating them.
 
-Planned scope:
+Completed evidence:
 
-- open the corresponding Agency Agent Operator task page;
-- open a real GitHub PR when `prUrl` is available;
-- open repository/worktree/folder when supported by the source harness;
-- expose relevant logs/evidence navigation without copying credentials into URLs;
-- distinguish unavailable navigation from auth/permission failures;
-- preserve the browser/server trust boundary.
+- authenticated Operator deep link selects project, task and evidence context;
+- no bearer token in URL or browser-persisted state;
+- safe GitHub PR/repository navigation with scheme/host/path validation;
+- local harness/folder navigation retained;
+- FR/EN navigation labels;
+- Agency Agent PR #14 merged at `921ff3eb8a84ec380a3839d8940e2d95c4bd50fd` with all production gates green;
+- Agent World PR #13 merged at `563bcfec735162a128e122bf2c3d4bc4f1a3b96c` with 68/68 tests + audit + build;
+- real Windows smoke confirms `Ouvrir dans Operator` opens the correct `Tuce` project/task and evidence panel.
+
+## AW7 — Governed Action Requests ⏭️ CURRENT
+
+Goal: allow a very small set of explicit requests from the 3D surface while Agency Agent remains the only authority that can decide or execute sensitive operations.
+
+Current implementation scope:
+
+- `REQUEST_HUMAN_REVIEW`;
+- `REQUEST_RISK_REVIEW`;
+- `REQUEST_VERIFICATION_RETRY`;
+- one contextual action button per Agency Agent card;
+- mandatory human rationale before submission;
+- loopback-only Agent World action gateway;
+- canonical thread re-resolution server-side before forwarding;
+- Agency Agent bearer token remains server-side;
+- dedicated `action.request` RBAC permission;
+- durable `governed_action.requested` Operator audit event;
+- VIEWER remains read-only;
+- no task transition, approval decision, tool execution, file write, verification retry or PR merge is executed by the request itself.
 
 Exit criteria:
 
-- navigation targets are derived only from authoritative normalized metadata;
-- no bearer token appears in a URL, DOM data attribute or browser-persisted state;
-- navigation actions do not mutate Agency Agent or GitHub state;
-- unit tests cover allowed/denied/unavailable navigation paths;
-- real-machine smoke verifies at least Operator task + GitHub PR navigation.
+- Agency Agent and Agent World CI green;
+- tests prove unsupported/direct mutation verbs are rejected;
+- tests prove browser requests contain no bearer credential;
+- tests prove loopback-only gateway and RBAC denial for VIEWER;
+- real-machine smoke records one request from the 3D card and shows it in Agency Agent audit;
+- documentation promotes AW7 only after that smoke.
 
-## AW7 — Optional Governed Actions
+## After AW7
 
-Goal: evaluate a small set of explicit actions only if they can be routed through Agency Agent authorization and audit boundaries.
+Candidate future work, deliberately not pre-approved:
 
-Possible examples:
+- an Operator inbox for pending governed requests;
+- explicit request lifecycle (`RECORDED → ACKNOWLEDGED → RESOLVED`) if operationally useful;
+- idempotent execution workers for narrowly approved request classes;
+- richer evidence/log navigation;
+- upstream Bot Crossing sync automation.
 
-- acknowledge/view attention;
-- request a governed retry;
-- submit an approval through the Operator API.
-
-Non-negotiable conditions:
-
-- no direct database mutation;
-- no bypass of RBAC/CSRF/token rules;
-- no release/security shortcut;
-- every mutation auditable in Agency Agent;
-- dedicated threat review before enabling actions.
+Any automatic execution from a request requires a separate ADR, explicit state machine, idempotency semantics, failure/retry policy and security review.
 
 ## Upstream sync policy
 

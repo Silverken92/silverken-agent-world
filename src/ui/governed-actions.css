@@ -1,0 +1,21 @@
+.sk-governed-actions {
+  display: grid;
+  gap: 6px;
+  margin: 8px 0 6px;
+}
+
+.sk-governed-action {
+  width: 100%;
+  border-color: rgba(160, 130, 255, 0.52);
+  background: rgba(104, 76, 176, 0.2);
+  color: inherit;
+}
+
+.sk-governed-action:hover:not(:disabled) {
+  background: rgba(122, 91, 205, 0.3);
+}
+
+.sk-governed-action:disabled {
+  opacity: 0.72;
+  cursor: default;
+}

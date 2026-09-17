@@ -1,8 +1,10 @@
 import './operational.css'
 import './navigation.css'
+import './governed-actions.css'
 import { getLocale, setLocale, t, translateLiteral, translateRelativeTime } from './i18n.js'
 import { decodeOperationalModel, operationalBadges } from './operational.js'
 import { governedNavigation } from './navigation.js'
+import { renderGovernedAction } from './governed-actions.js'
 
 const BRAND_NAME = 'SilverKen Agent World'
 let currentLocale = getLocale()
@@ -121,6 +123,7 @@ function applyOperationalBadges(root = document) {
       delete card.dataset.skops
       delete card.dataset.skRenderKey
       card.querySelector('.sk-nav')?.remove()
+      card.querySelector('.sk-governed-actions')?.remove()
       continue
     }
 
@@ -140,6 +143,7 @@ function applyOperationalBadges(root = document) {
       meta.appendChild(el)
     }
     renderNavigation(card, data)
+    renderGovernedAction(card, data, currentLocale)
     card.dataset.skRenderKey = renderKey
   }
 }
@@ -167,7 +171,7 @@ function applyBrand(root = document) {
   const systembar = root.querySelector('.sk-systembar')
   if (systembar) {
     systembar.querySelector('span').textContent = t('governedView', currentLocale)
-    systembar.querySelector('strong').textContent = t('readOnly', currentLocale)
+    systembar.querySelector('strong').textContent = currentLocale === 'fr' ? 'ACTIONS GOUVERNÉES' : 'GOVERNED ACTIONS'
   }
 
   const bootTitle = root.querySelector('.boot h1')
@@ -186,7 +190,9 @@ function applyBrand(root = document) {
       note.className = 'sk-governance-note'
       helpSub.insertAdjacentElement('afterend', note)
     }
-    note.textContent = t('governanceNote', currentLocale)
+    note.textContent = currentLocale === 'fr'
+      ? 'Agent World observe les systèmes sources et peut enregistrer des demandes gouvernées ; Agency Agent reste l’autorité d’exécution.'
+      : 'Agent World observes source systems and may record governed requests; Agency Agent remains the execution authority.'
   }
 
   const labels = statLabels(currentLocale)
