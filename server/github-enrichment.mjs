@@ -27,7 +27,7 @@ function parsePositiveInt(value, fallback) {
   return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback
 }
 
-function parseProjectMap(raw) {
+function parseJsonMap(raw, acceptValue) {
   if (!raw) return {}
   try {
     const parsed = JSON.parse(raw)
@@ -35,22 +35,40 @@ function parseProjectMap(raw) {
     return Object.fromEntries(
       Object.entries(parsed)
         .map(([key, value]) => [clean(key), clean(value)])
-        .filter(([key, value]) => key && /^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/.test(value))
+        .filter(([key, value]) => key && acceptValue(value))
     )
   } catch {
     return {}
   }
 }
 
+function parseProjectMap(raw) {
+  return parseJsonMap(raw, (value) => /^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/.test(value))
+}
+
+function parseBranchMap(raw) {
+  return parseJsonMap(
+    raw,
+    (value) => Boolean(value) && value.length <= 255 && !/[\u0000-\u001f\u007f]/.test(value)
+  )
+}
+
 export function githubConfig(env = process.env) {
   const token = clean(env.AGENT_WORLD_GITHUB_TOKEN || env.GITHUB_TOKEN || env.GH_TOKEN)
   const projectMap = parseProjectMap(env.AGENT_WORLD_GITHUB_PROJECTS)
+  const branchMap = parseBranchMap(env.AGENT_WORLD_GITHUB_BRANCHES)
   const explicit = clean(env.AGENT_WORLD_GITHUB).toLowerCase()
-  const enabled = explicit === '1' || explicit === 'true' || Boolean(token) || Object.keys(projectMap).length > 0
+  const enabled =
+    explicit === '1' ||
+    explicit === 'true' ||
+    Boolean(token) ||
+    Object.keys(projectMap).length > 0 ||
+    Object.keys(branchMap).length > 0
   return {
     enabled,
     token,
     projectMap,
+    branchMap,
     apiBase: clean(env.AGENT_WORLD_GITHUB_API) || 'https://api.github.com',
     cacheMs: parsePositiveInt(env.AGENT_WORLD_GITHUB_CACHE_MS, DEFAULT_CACHE_MS),
     maxContexts: parsePositiveInt(env.AGENT_WORLD_GITHUB_MAX_CONTEXTS, DEFAULT_MAX_CONTEXTS),
@@ -89,17 +107,28 @@ async function localGitInfo(dir) {
   }
 }
 
-function mappedRepo(project, projectMap) {
+function mappedValue(project, map) {
   const name = clean(project)
   if (!name) return ''
-  if (projectMap[name]) return projectMap[name]
+  if (map[name]) return clean(map[name])
   const lower = name.toLowerCase()
-  const found = Object.entries(projectMap).find(([key]) => key.toLowerCase() === lower)
-  return found?.[1] || ''
+  const found = Object.entries(map).find(([key]) => key.toLowerCase() === lower)
+  return clean(found?.[1])
 }
 
-export async function resolveGitHubTarget(thread, { projectMap = {}, gitInfo = localGitInfo } = {}) {
-  const branchHint = clean(thread?.gitBranch)
+function mappedRepo(project, projectMap) {
+  return mappedValue(project, projectMap)
+}
+
+function mappedBranch(project, branchMap) {
+  return mappedValue(project, branchMap)
+}
+
+export async function resolveGitHubTarget(
+  thread,
+  { projectMap = {}, branchMap = {}, gitInfo = localGitInfo } = {}
+) {
+  const branchHint = clean(thread?.gitBranch) || mappedBranch(thread?.project, branchMap)
   const mapped = mappedRepo(thread?.project, projectMap)
   if (mapped && branchHint) return { repo: mapped, branch: branchHint }
 
@@ -280,7 +309,11 @@ export async function enrichThreadsWithGitHub(
   return Promise.all(
     threads.map(async (thread) => {
       if (contexts >= config.maxContexts) return thread
-      const target = await resolveGitHubTarget(thread, { projectMap: config.projectMap, gitInfo })
+      const target = await resolveGitHubTarget(thread, {
+        projectMap: config.projectMap,
+        branchMap: config.branchMap,
+        gitInfo,
+      })
       if (!target) return thread
       contexts += 1
 
