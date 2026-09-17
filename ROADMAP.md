@@ -111,15 +111,13 @@ Completed controls:
 Real-machine evidence on Windows:
 
 ```text
-3D request button          ✅
-mandatory rationale        ✅
-Demande enregistrée ✓      ✅
-Audit outcome SUCCESS      ✅
+3D request button            ✅
+mandatory rationale          ✅
+Demande enregistrée ✓        ✅
+Audit outcome SUCCESS        ✅
 action REQUEST_HUMAN_REVIEW ✅
 source silverken-agent-world ✅
 ```
-
-Multiple audit rows created during debugging are expected historical requests; after the final UX hotfix, the success button remains disabled for the page session to reduce accidental duplicates.
 
 ## AW8 — Productization & Local Launcher ✅
 
@@ -140,44 +138,91 @@ Completed implementation:
 - Vite and production server load the same machine config;
 - no new runtime dependency.
 
-Quality evidence:
+Real-machine Windows evidence confirms one-command boot, machine-local secret loading, Agent World FR UI and automatic Agency Agent availability.
 
-- PR #17 quality gate green;
-- squash merge to `main` at `efb982def6052bb58129a5aaf671ddf0766e6503`;
-- post-merge quality gate: 79/79 tests PASS, runtime audit PASS, production build PASS;
-- tests prove local config does not expose token values in diagnostics;
-- tests prove environment variables override the local file;
-- tests reject embedded credentials and non-http Agency Agent URLs.
+## AW9 — Governed Request Inbox & Lifecycle ✅
+
+Goal: turn AW7 request audit rows into durable, human-trackable work items without making Agent World an execution authority.
+
+Completed implementation:
+
+- request inbox projected from the durable Agency Agent audit stream;
+- strict lifecycle `RECORDED → ACKNOWLEDGED → RESOLVED`;
+- no direct status skip or rollback;
+- each transition produces its own audit event;
+- Operator `Requests` tab with lifecycle controls;
+- Agent World receives compact lifecycle state only, without rationale text;
+- duplicate contextual requests are blocked while an equivalent request remains open;
+- resolved requests remain visible and allow a future new request.
+
+AW9.1 added a professional FR/EN Operator cockpit with translated business labels, integrated transition forms, clearer status cards and explanatory governance copy.
 
 Real-machine Windows evidence:
 
 ```text
-npm run setup                         ✅
-config/agent-world.local.json         ✅ machine-local / Git-ignored
-npm run doctor                        ✅
-Agency Agent token                    ✅ configured without printing value
-Agency Agent health before launcher   WARN (not running) ✅ expected
-Agency Agent auto-start               ✅ enabled + executable found
-GitHub token/mapping                   ✅ detected without printing token
-npm run dev                            ✅ one-command boot
-Tuce visible after launcher boot       ✅
-French governed UI                     ✅
+Operator: Enregistrée → Prise en compte → Résolue ✅
+Agent World: Demande · RÉSOLUE                 ✅
+request payload: RESOLVED / REQUEST_HUMAN_REVIEW ✅
+underlying task remained BACKLOG               ✅
 ```
 
-AW8 therefore meets its local-productization exit criteria.
+## AW10 — Persistent Agent Registry & Operator Creation ✅
 
-## After AW8
+Goal: make Agency Agent Operator the authoritative place to create and configure persistent governed agent identities, then visualize those identities in Agent World independently of any one task.
+
+Completed implementation:
+
+- durable project-scoped `AgentProfile` registry;
+- migration `0002_agent_registry`;
+- Agent Registry create/update/enable controls in Operator;
+- FR/EN registry UI;
+- role, model, description, allowed tools and allowed write paths;
+- `agent.read` / `agent.manage` RBAC permissions and audit events;
+- task creation selects from enabled registered agents once a project adopts the registry;
+- Agent World snapshot v1.1 carries a compact non-secret agent inventory;
+- one persistent 3D astronaut per enabled AgentProfile, even when idle;
+- task/mission threads remain distinct for AW1–AW9 compatibility;
+- profile cards navigate back to Operator and cannot submit task-governed requests;
+- disabled profiles leave the active colony.
+
+Quality evidence:
+
+```text
+Agency Agent main: 4ab0deb2d513a99a78abe71c3a4d01b659c02b19 ✅
+Repository Quality / PostgreSQL / container production smokes              ✅
+Agent World main: 8f12ad279353b6c1b5edc78a10a948e7133a7827            ✅
+Agent World Quality: runtime audit + 89/89 tests + build                    ✅
+```
+
+Real-machine Windows evidence:
+
+```text
+AgentProfile: Tuce-Frontend / FRONTEND                         ✅
+Operator task assignment selector: Tuce-Frontend · FRONTEND   ✅
+Mission: Smoke AW10 - mission assignée à Tuce-Frontend        ✅
+Persistent 3D profile id: agency-agent-profile:...             ✅
+project: Tuce                                                   ✅
+running: False                                                  ✅ expected idle identity
+archived: False                                                 ✅
+role: FRONTEND                                                  ✅
+3D card: AGENT · FRONTEND / Responsable · Tuce-Frontend        ✅
+```
+
+AW10 therefore meets its real-machine exit criteria: an agent can be created in Operator, assigned governed work, and exist as a persistent 3D identity without an implicit execution side effect.
+
+## After AW10
 
 Candidate future work, not pre-approved:
 
-- AW9 governed request inbox / lifecycle (`RECORDED → ACKNOWLEDGED → RESOLVED`);
+- visually group mission/task objects around their persistent AgentProfile astronaut;
+- agent templates/presets and richer capability policy authoring;
+- explicit execution controls and run lifecycle only through separate ADR/RBAC/idempotency work;
 - optional desktop packaging / tray launcher;
 - richer evidence/log navigation;
-- idempotent execution workers for narrowly approved request classes;
 - upstream Bot Crossing sync automation;
 - cleanup/automation for stale development branches.
 
-Any automatic execution from a request still requires a separate ADR, explicit state machine, idempotency semantics, failure/retry policy and security review.
+Any automatic execution still requires a separate ADR, explicit state machine, idempotency semantics, failure/retry policy and security review.
 
 ## Upstream sync policy
 
