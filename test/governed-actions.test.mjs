@@ -6,7 +6,10 @@ import { ALLOWED_ACTIONS, isLoopbackPage } from '../server/governed-actions.mjs'
 import {
   ACTIONS,
   actionForStatus,
+  clearGovernedActionStates,
   governedActionModel,
+  governedActionState,
+  setGovernedActionState,
   submitGovernedAction,
 } from '../src/ui/governed-actions.js'
 import { devApiMiddleware } from '../vite.config.js'
@@ -44,6 +47,34 @@ test('browser action model carries only canonical thread identity and display st
   assert.equal(model.action, 'REQUEST_RISK_REVIEW')
   assert.equal(model.label, 'Demander revue risque')
   assert.equal(JSON.stringify(model).includes('aa_'), false)
+})
+
+test('recorded request state survives card rerenders for the same contextual action', () => {
+  clearGovernedActionStates()
+  const data = {
+    x: {
+      i: 'agency-agent:prj_1:task_1',
+      s: 'BACKLOG',
+    },
+  }
+  const first = governedActionModel(data, 'fr')
+  assert.equal(governedActionState(first), '')
+
+  setGovernedActionState(first, 'pending')
+  const duringRerender = governedActionModel(data, 'fr')
+  assert.equal(governedActionState(duringRerender), 'pending')
+
+  setGovernedActionState(first, 'recorded')
+  const afterRerender = governedActionModel(data, 'fr')
+  assert.equal(governedActionState(afterRerender), 'recorded')
+
+  const changedAction = governedActionModel(
+    { x: { i: 'agency-agent:prj_1:task_1', s: 'FAILED_VERIFICATION' } },
+    'fr'
+  )
+  assert.equal(changedAction.action, ACTIONS.VERIFY)
+  assert.equal(governedActionState(changedAction), '')
+  clearGovernedActionStates()
 })
 
 test('browser submits governed intent only to same-origin Agent World gateway', async () => {
