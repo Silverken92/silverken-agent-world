@@ -1,0 +1,60 @@
+.sk-language {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  margin-left: auto;
+}
+
+.sk-language select {
+  min-width: 42px;
+  height: 27px;
+  padding: 0 5px;
+  border: 1px solid rgba(139, 124, 255, 0.28);
+  border-radius: 7px;
+  outline: none;
+  background: rgba(139, 124, 255, 0.08);
+  color: #c8c2ff;
+  font: inherit;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+}
+
+.sk-language select:hover,
+.sk-language select:focus-visible {
+  border-color: rgba(139, 124, 255, 0.58);
+  background: rgba(139, 124, 255, 0.15);
+}
+
+.sk-language option {
+  background: #0c1220;
+  color: #f3f6ff;
+}
+
+.sr-only {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+html[lang='fr'] .settings header::before {
+  content: 'MONDE / ';
+}
+
+html[lang='fr'] .boot h1::after {
+  content: 'OPÉRATIONS D’AGENTS GOUVERNÉES';
+}
+
+@media (max-width: 720px) {
+  .sk-language select {
+    min-width: 39px;
+    height: 25px;
+  }
+}
