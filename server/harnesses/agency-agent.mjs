@@ -17,6 +17,11 @@ const UNREAD_STATUSES = new Set([
 ])
 
 const ERROR_STATUSES = new Set(['FAILED_VERIFICATION'])
+const GOVERNED_ACTIONS = new Set([
+  'REQUEST_HUMAN_REVIEW',
+  'REQUEST_RISK_REVIEW',
+  'REQUEST_VERIFICATION_RETRY',
+])
 
 function baseUrl() {
   return (process.env.AGENCY_AGENT_URL || DEFAULT_BASE_URL).replace(/\/$/, '')
@@ -26,8 +31,9 @@ function token() {
   return (process.env.AGENCY_AGENT_TOKEN || '').trim()
 }
 
-async function requestJson(path, { auth = true } = {}) {
+async function requestJson(path, { auth = true, method = 'GET', body } = {}) {
   const headers = { Accept: 'application/json' }
+  if (body !== undefined) headers['Content-Type'] = 'application/json'
   if (auth) {
     const authToken = token()
     if (!authToken) {
@@ -39,7 +45,9 @@ async function requestJson(path, { auth = true } = {}) {
   }
 
   const response = await fetch(`${baseUrl()}${path}`, {
+    method,
     headers,
+    body: body === undefined ? undefined : JSON.stringify(body),
     signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
   })
 
@@ -174,6 +182,10 @@ function compactOperational(record, task) {
 
 function encodeOperationalModel(ops, navigation = {}) {
   if (!ops) return ''
+  const extension = {}
+  if (navigation.operatorUrl) extension.o = navigation.operatorUrl
+  if (navigation.threadId) extension.i = safeText(navigation.threadId, 320)
+  if (navigation.status) extension.s = safeText(navigation.status, 48)
   const display = {
     m: ops.executionModel,
     o: ops.ownerAgent,
@@ -192,7 +204,7 @@ function encodeOperationalModel(ops, navigation = {}) {
     d: ops.release?.disposition || '',
     t: ops.activity.tokenUsage,
     c: ops.activity.costByCurrency,
-    x: navigation.operatorUrl ? { o: navigation.operatorUrl } : undefined,
+    x: Object.keys(extension).length ? extension : undefined,
   }
   return `${OPS_MODEL_PREFIX}${encodeURIComponent(JSON.stringify(display))}`
 }
@@ -208,9 +220,10 @@ function toThread(project, record) {
   const status = task.status || 'BACKLOG'
   const serializedSize = textBytes(JSON.stringify(record))
   const operatorUrl = operatorTaskUrl(project.project_id, task.id)
+  const threadId = `agency-agent:${project.project_id}:${task.id}`
 
   return {
-    id: `agency-agent:${project.project_id}:${task.id}`,
+    id: threadId,
     title: objective.length > 120 ? `${objective.slice(0, 117)}...` : objective,
     preview: objective.length > 280 ? `${objective.slice(0, 277)}...` : objective,
     project: project.name || project.slug || 'Agency Agent',
@@ -218,7 +231,7 @@ function toThread(project, record) {
     worktree: worktreeFor(task),
     cwd: '',
     gitBranch: branchFor(task),
-    model: encodeOperationalModel(ops, { operatorUrl }) || task.execution_model || 'AGENCY_AGENT',
+    model: encodeOperationalModel(ops, { operatorUrl, threadId, status }) || task.execution_model || 'AGENCY_AGENT',
     effort: (task.risk || '').toLowerCase(),
     createdAt,
     lastActivityAt: updatedAt,
@@ -240,6 +253,22 @@ function toThread(project, record) {
       ownerAgent: task.owner_agent || '',
     },
   }
+}
+
+async function requestGovernedAction(projectId, taskId, action, rationale) {
+  const safeProject = safeText(projectId, 160)
+  const safeTask = safeText(taskId, 160)
+  const safeRationale = safeText(rationale, 1000).trim()
+  if (!safeProject || !safeTask) throw new Error('Agency Agent task reference is missing')
+  if (!GOVERNED_ACTIONS.has(action)) throw new Error('Governed action is not allowed')
+  if (safeRationale.length < 3) throw new Error('Governed action rationale is required')
+  return requestJson(
+    `/api/v1/projects/${encodeURIComponent(safeProject)}/tasks/${encodeURIComponent(safeTask)}/agent-world-actions`,
+    {
+      method: 'POST',
+      body: { action, rationale: safeRationale },
+    }
+  )
 }
 
 async function detect() {
@@ -328,4 +357,12 @@ export default {
   newSession,
 }
 
-export { OPS_MODEL_PREFIX, compactOperational, encodeOperationalModel, operatorTaskUrl, toThread }
+export {
+  GOVERNED_ACTIONS,
+  OPS_MODEL_PREFIX,
+  compactOperational,
+  encodeOperationalModel,
+  operatorTaskUrl,
+  requestGovernedAction,
+  toThread,
+}
