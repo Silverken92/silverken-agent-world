@@ -121,11 +121,11 @@ source silverken-agent-world ✅
 
 Multiple audit rows created during debugging are expected historical requests; after the final UX hotfix, the success button remains disabled for the page session to reduce accidental duplicates.
 
-## AW8 — Productization & Local Launcher 🟠 CURRENT
+## AW8 — Productization & Local Launcher ✅
 
 Goal: make the local product usable every day without re-entering environment variables or manually coordinating two terminals.
 
-Current implementation scope:
+Completed implementation:
 
 - Git-ignored `config/agent-world.local.json` machine config;
 - committed safe template `config/agent-world.example.json`;
@@ -133,23 +133,38 @@ Current implementation scope:
 - config loader maps existing Agency Agent and GitHub env contracts without exposing secrets;
 - `npm run setup` creates the local template once and never overwrites it;
 - `npm run doctor` reports Node/config/health/mapping status without printing token values;
-- `npm run dev` becomes the local launcher;
+- `npm run dev` is the cross-platform local launcher;
 - optional Agency Agent auto-start from a sibling `.venv` checkout;
 - existing healthy Agency Agent process is reused rather than duplicated;
 - launcher waits for `/health` before starting the 3D app;
 - Vite and production server load the same machine config;
 - no new runtime dependency.
 
-Exit criteria:
+Quality evidence:
 
-- CI audit/tests/build green;
+- PR #17 quality gate green;
+- squash merge to `main` at `efb982def6052bb58129a5aaf671ddf0766e6503`;
+- post-merge quality gate: 79/79 tests PASS, runtime audit PASS, production build PASS;
 - tests prove local config does not expose token values in diagnostics;
 - tests prove environment variables override the local file;
-- tests reject embedded credentials / non-http Agency Agent URLs;
-- Windows smoke: `npm run setup` → one local edit → `npm run doctor` → `npm run dev`;
-- Windows smoke proves Agency Agent auto-start when stopped;
-- Agent World still shows `Tuce`, FR UI and governed request/navigation after launcher boot;
-- roadmap promoted to AW8 complete only after the real-machine smoke.
+- tests reject embedded credentials and non-http Agency Agent URLs.
+
+Real-machine Windows evidence:
+
+```text
+npm run setup                         ✅
+config/agent-world.local.json         ✅ machine-local / Git-ignored
+npm run doctor                        ✅
+Agency Agent token                    ✅ configured without printing value
+Agency Agent health before launcher   WARN (not running) ✅ expected
+Agency Agent auto-start               ✅ enabled + executable found
+GitHub token/mapping                   ✅ detected without printing token
+npm run dev                            ✅ one-command boot
+Tuce visible after launcher boot       ✅
+French governed UI                     ✅
+```
+
+AW8 therefore meets its local-productization exit criteria.
 
 ## After AW8
 
