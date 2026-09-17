@@ -1,0 +1,39 @@
+.thread-pop .sk-nav {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+  margin: 8px 0 6px;
+}
+
+.thread-pop .sk-nav .sk-nav-link {
+  min-width: 0;
+  justify-content: center;
+  text-decoration: none;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.thread-pop .sk-nav .sk-nav-link.operator {
+  grid-column: 1 / -1;
+  border-color: rgba(134, 126, 255, 0.5);
+  background: rgba(92, 82, 190, 0.18);
+}
+
+.thread-pop .sk-nav .sk-nav-link.pr {
+  border-color: rgba(70, 214, 205, 0.35);
+}
+
+.thread-pop .sk-nav .sk-nav-link.repo {
+  border-color: rgba(190, 196, 210, 0.24);
+}
+
+@media (max-width: 760px) {
+  .thread-pop .sk-nav {
+    grid-template-columns: 1fr;
+  }
+
+  .thread-pop .sk-nav .sk-nav-link.operator {
+    grid-column: auto;
+  }
+}
