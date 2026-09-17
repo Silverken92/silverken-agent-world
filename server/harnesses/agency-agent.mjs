@@ -91,6 +91,22 @@ function safeCosts(value) {
   return out
 }
 
+function operatorTaskUrl(projectId, taskId) {
+  try {
+    const url = new URL('/ui', `${baseUrl()}/`)
+    if (!['http:', 'https:'].includes(url.protocol) || url.username || url.password) return ''
+    const safeProjectId = safeText(projectId, 160)
+    const safeTaskId = safeText(taskId, 160)
+    if (!safeProjectId || !safeTaskId) return ''
+    url.searchParams.set('project', safeProjectId)
+    url.searchParams.set('task', safeTaskId)
+    url.searchParams.set('view', 'tasks')
+    return url.toString()
+  } catch {
+    return ''
+  }
+}
+
 function branchFor(task) {
   const workspace = task.workspace_isolation
   if (!workspace) return ''
@@ -156,7 +172,7 @@ function compactOperational(record, task) {
   }
 }
 
-function encodeOperationalModel(ops) {
+function encodeOperationalModel(ops, navigation = {}) {
   if (!ops) return ''
   const display = {
     m: ops.executionModel,
@@ -176,6 +192,7 @@ function encodeOperationalModel(ops) {
     d: ops.release?.disposition || '',
     t: ops.activity.tokenUsage,
     c: ops.activity.costByCurrency,
+    x: navigation.operatorUrl ? { o: navigation.operatorUrl } : undefined,
   }
   return `${OPS_MODEL_PREFIX}${encodeURIComponent(JSON.stringify(display))}`
 }
@@ -190,6 +207,7 @@ function toThread(project, record) {
   const updatedAt = Math.max(taskUpdatedAt, activityAt)
   const status = task.status || 'BACKLOG'
   const serializedSize = textBytes(JSON.stringify(record))
+  const operatorUrl = operatorTaskUrl(project.project_id, task.id)
 
   return {
     id: `agency-agent:${project.project_id}:${task.id}`,
@@ -200,7 +218,7 @@ function toThread(project, record) {
     worktree: worktreeFor(task),
     cwd: '',
     gitBranch: branchFor(task),
-    model: encodeOperationalModel(ops) || task.execution_model || 'AGENCY_AGENT',
+    model: encodeOperationalModel(ops, { operatorUrl }) || task.execution_model || 'AGENCY_AGENT',
     effort: (task.risk || '').toLowerCase(),
     createdAt,
     lastActivityAt: updatedAt,
@@ -256,8 +274,6 @@ async function scanProject(project) {
     const tasks = Array.isArray(snapshot?.tasks) ? snapshot.tasks : []
     return tasks.map((record) => toThread(snapshotProject, record))
   } catch (error) {
-    // AW5 snapshot landed after the original bridge. Keep older local Agency Agent checkouts
-    // usable during upgrades, but only fall back for an endpoint that genuinely does not exist.
     if (error.status !== 404) throw error
     const tasks = await requestJson(`/api/v1/projects/${projectId}/tasks`)
     return Array.isArray(tasks) ? tasks.map((task) => toThread(project, task)) : []
@@ -291,7 +307,7 @@ async function scanThreads() {
 function openThread() {
   return {
     ok: false,
-    error: 'Opening Agency Agent tasks from Agent World is not enabled in the read-only bridge.',
+    error: 'Use the governed navigation link to open this task in the Agency Agent Operator UI.',
   }
 }
 
@@ -312,4 +328,4 @@ export default {
   newSession,
 }
 
-export { OPS_MODEL_PREFIX, compactOperational, encodeOperationalModel, toThread }
+export { OPS_MODEL_PREFIX, compactOperational, encodeOperationalModel, operatorTaskUrl, toThread }
