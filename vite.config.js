@@ -1,6 +1,9 @@
 import { defineConfig } from 'vite'
 import { apiMiddleware } from './server/api.mjs'
 import { governedActionHandler } from './server/governed-actions.mjs'
+import { loadLocalConfig } from './server/local-config.mjs'
+
+await loadLocalConfig()
 
 /**
  * Vite dev must expose the same governed-action route as the production server.

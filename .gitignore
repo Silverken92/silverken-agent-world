@@ -6,6 +6,9 @@ dist
 data/*.json
 data/*.tmp
 
+# SilverKen machine-local runtime config. May contain Agency Agent / GitHub tokens.
+config/agent-world.local.json
+
 # Per-machine Claude Code permissions — personal paths live in here.
 .claude/settings.local.json
 

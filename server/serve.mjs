@@ -4,6 +4,9 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { apiMiddleware } from './api.mjs'
 import { governedActionHandler } from './governed-actions.mjs'
+import { loadLocalConfig } from './local-config.mjs'
+
+await loadLocalConfig()
 
 const here = path.dirname(fileURLToPath(import.meta.url))
 const DIST = path.join(here, '..', 'dist')
@@ -64,5 +67,5 @@ const server = http.createServer(async (req, res) => {
 })
 
 server.listen(PORT, HOST, () => {
-  console.log(`Bot Crossing → http://${HOST}:${PORT}`)
+  console.log(`SilverKen Agent World → http://${HOST}:${PORT}`)
 })

@@ -39,7 +39,10 @@
     "linux"
   ],
   "scripts": {
-    "dev": "npm run assets --silent && vite",
+    "setup": "node tools/agent-world-launcher.mjs setup",
+    "doctor": "node tools/agent-world-launcher.mjs doctor",
+    "dev": "node tools/agent-world-launcher.mjs dev",
+    "dev:raw": "npm run assets --silent && vite",
     "build": "npm run assets --silent && vite build",
     "start": "vite build && node server/serve.mjs",
     "serve": "node server/serve.mjs",
