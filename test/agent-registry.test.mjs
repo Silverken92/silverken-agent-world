@@ -94,11 +94,12 @@ test('disabled persistent profile is removed from the live colony', () => {
   assert.equal(thread.running, false)
 })
 
-test('profile projection contains no credential or creator identity', () => {
+test('profile projection contains no creator identity or unapproved secret field', () => {
   const raw = profile({ created_by: 'usr-private', secret: 'do-not-project' })
   const thread = toAgentThread(project, raw, [])
   const serialized = JSON.stringify(thread)
   assert.equal(serialized.includes('usr-private'), false)
   assert.equal(serialized.includes('do-not-project'), false)
-  assert.equal(serialized.includes('token'), false)
+  assert.equal(Object.hasOwn(thread.ref, 'created_by'), false)
+  assert.equal(Object.hasOwn(thread.ref, 'secret'), false)
 })
