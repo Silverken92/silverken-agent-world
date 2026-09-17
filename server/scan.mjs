@@ -6,6 +6,7 @@
  * from, and hands back a single list sorted by recency. Everything harness-specific lives
  * in `server/harnesses/` — see the README there.
  */
+import { enrichThreadsWithGitHub } from './github-enrichment.mjs'
 import { HARNESSES, detectedHarnesses, harnessById } from './harnesses/index.mjs'
 
 /**
@@ -68,6 +69,10 @@ function disambiguateProjects(threads) {
  *
  * A harness that throws is skipped rather than allowed to take the scan down with it: one
  * broken adapter should cost you that harness's threads, not the whole colony.
+ *
+ * GitHub enrichment is a second, optional read-only layer. It runs after harness normalization
+ * so adapters stay independent from GitHub, and it degrades to the original thread whenever
+ * GitHub is disabled, unreachable or unauthorized.
  */
 export async function scanThreads() {
   const harnesses = await detectedHarnesses()
@@ -83,8 +88,9 @@ export async function scanThreads() {
     })
   )
   const threads = disambiguateProjects(lists.flat())
-  threads.sort((a, b) => b.lastActivityAt - a.lastActivityAt)
-  return threads
+  const enriched = await enrichThreadsWithGitHub(threads)
+  enriched.sort((a, b) => b.lastActivityAt - a.lastActivityAt)
+  return enriched
 }
 
 /** What the HUD shows in the harness list: who is installed, and what they can do. */
