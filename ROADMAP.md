@@ -15,11 +15,11 @@ SilverKen Agent World evolves Bot Crossing into a governed visual operations sur
 
 Completed in `Silverken92/agency-agent`.
 
-- define Agency Agent → Bot Crossing thread mapping;
-- define read-only API-token integration;
-- document security/governance boundary;
-- preserve Operator API/RBAC as authority;
-- add ADR-0014 to Agency Agent.
+- Agency Agent → Bot Crossing thread mapping defined;
+- authenticated read-only API-token integration defined;
+- security/governance boundary documented;
+- Operator API/RBAC remains authoritative;
+- ADR-0014 added to Agency Agent.
 
 ## AW2 — Repository Bootstrap ✅
 
@@ -27,18 +27,14 @@ Goal: establish a maintainable SilverKen fork with a tested Agency Agent harness
 
 Completed evidence:
 
-- [x] fork `Station-Sciences/bot-crossing` as `Silverken92/silverken-agent-world`;
-- [x] register `agency-agent` harness;
-- [x] map Agency Agent task states into colony behavior;
-- [x] add adapter unit tests;
-- [x] rebrand package/app shell/README;
-- [x] preserve MIT/upstream attribution;
-- [x] add hardened repository CI with runtime dependency audit;
-- [x] PR #1 quality gate passes;
-- [x] 39/39 tests pass;
-- [x] production build passes;
-- [x] squash merge to `main` at `1705be2f823f30a18352561b5460d98da28bb314`;
-- [x] post-merge `main` quality gate passes.
+- fork `Station-Sciences/bot-crossing` as `Silverken92/silverken-agent-world`;
+- register `agency-agent` harness;
+- map Agency Agent states into colony behavior;
+- preserve MIT/upstream attribution;
+- hardened CI with runtime dependency audit;
+- PR #1 quality gate passes — 39/39 tests + production build;
+- squash merge to `main` at `1705be2f823f30a18352561b5460d98da28bb314`;
+- post-merge `main` quality gate passes.
 
 ## AW3 — Live Agency Agent View ✅
 
@@ -46,21 +42,15 @@ Goal: prove end-to-end operation against a real local Agency Agent instance and 
 
 Completed evidence:
 
-- [x] detect the Agency Agent Operator API through public `/health`;
-- [x] keep bearer authentication server-side;
-- [x] report a missing token explicitly;
-- [x] distinguish rejected and under-authorized tokens;
-- [x] avoid throwing the colony scan for expected auth failures;
-- [x] fixture-backed live project/task API scan tests;
-- [x] verify normalized threads contain no bearer credential;
-- [x] PR #2 quality gate passes;
-- [x] squash merge to `main` at `476e1a36f06edc32e4d0a76dc27f9c89173d6fc9`;
-- [x] post-merge `main` quality gate passes;
-- [x] exercise against a real Windows operator machine with a real Agency Agent API token;
-- [x] verify `/health`, authenticated harness discovery and real `/api/threads` data;
-- [x] observe real Agency Agent project `Tuce` and task in the running 3D colony.
-
-The real-machine smoke confirmed `Agency Agent detected=true`, no harness diagnostic, an authenticated Agency Agent thread, and the `Tuce` zone/astronaut rendered in the live colony.
+- public `/health` detection;
+- server-side bearer authentication;
+- missing/rejected/under-authorized token diagnostics;
+- expected auth failures isolated from the colony scan;
+- normalized threads contain no bearer credential;
+- PR #2 merged at `476e1a36f06edc32e4d0a76dc27f9c89173d6fc9`;
+- real Windows smoke with a real Agency Agent token;
+- `/health`, authenticated project discovery and `/api/threads` verified;
+- real `Tuce` project/task rendered in the live 3D colony.
 
 ## AW4 — SilverKen Visual Identity ✅
 
@@ -68,113 +58,118 @@ Goal: make the product visually distinct while retaining the proven colony engin
 
 Completed evidence:
 
-- [x] dedicated `silverken.css` product skin rather than rewriting upstream HUD CSS;
-- [x] dedicated idempotent branding layer rather than forking `hud.js` wholesale;
-- [x] SilverKen monogram and two-line Agent World brand header;
-- [x] persistent `Governed view / Read only` system indicator;
-- [x] graphite/silver + violet/cyan product palette;
-- [x] SilverKen boot screen and favicon treatment;
-- [x] refined operator vocabulary (`active`, `needs input`, `failed`, `released`);
-- [x] `repo` → `project` and `conversation` → `session` product vocabulary where appropriate;
-- [x] SilverKen help/governance explanation;
-- [x] visual identity architecture documentation;
-- [x] PR #3 quality gate passes;
-- [x] squash merge to `main` at `35530844900e8a6b06149251d88007238e59b051`;
-- [x] post-merge `main` quality gate passes.
+- additive `silverken.css` product skin;
+- idempotent branding layer;
+- SilverKen monogram/header and `Governed view / Read only` indicator;
+- graphite/silver + violet/cyan palette;
+- operator-oriented vocabulary and help surface;
+- PR #3 merged at `35530844900e8a6b06149251d88007238e59b051`;
+- post-merge quality gate passes.
 
 ## FR/EN Localization ✅
 
-Goal: make the 3D operational surface usable in French without making localization an expensive upstream fork.
+Goal: make the 3D operational surface usable in French without creating an expensive upstream fork.
 
 Completed evidence:
 
-- [x] additive `i18n.js` / `i18n.css` layer;
-- [x] compact FR/EN selector in the SilverKen header;
-- [x] browser-language detection on first use;
-- [x] locally persisted language preference;
-- [x] reversible French/English SilverKen governance labels and primary HUD actions;
-- [x] French settings/help/operator vocabulary and relative activity times;
-- [x] French Agency Agent operational evidence badges without changing evidence semantics;
-- [x] preserve upstream `hud.js` unchanged for this slice;
-- [x] PR #6 quality gate passes — 52/52 tests, runtime audit and production build;
-- [x] squash merge to `main` at `70fb8d82359eeb43a2f97be3343c7466fcb85e07`;
-- [x] post-merge `main` quality gate passes.
+- additive `i18n.js` / `i18n.css` layer;
+- compact FR/EN selector;
+- browser-language detection on first use;
+- locally persisted preference;
+- reversible French/English primary HUD and governance labels;
+- French Agency Agent/GitHub badges without changing evidence semantics;
+- PR #6 merged at `70fb8d82359eeb43a2f97be3343c7466fcb85e07`;
+- i18n freeze regression fixed by the MutationObserver hotfix at `64e74fd435767c7af241b906a52299782a9336ef`;
+- real Windows smoke confirms the French 3D UI is stable and responsive.
 
-## AW5 — Operational Enrichment 🚧
+## AW5 — Operational Enrichment ✅
 
-Goal: surface high-value delivery context next to the world without turning Agent World into a second evidence store.
+Goal: surface high-value delivery context without turning Agent World into a second evidence store.
 
 ### AW5A — Governed Agency Agent evidence ✅
 
 Agency Agent side:
 
-- [x] add one bounded read-only project snapshot: `GET /api/v1/projects/{project_id}/agent-world`;
-- [x] require bearer authentication and explicit project/task/run/evidence/security read permissions;
-- [x] compact task fields rather than returning the complete task contract;
-- [x] aggregate verification counts;
-- [x] expose latest agent/activity plus token/cost telemetry;
-- [x] expose compact independent Evaluator verdict;
-- [x] expose compact SilverGuard disposition/finding counts;
-- [x] expose compact Agency Agent release disposition/readiness;
-- [x] exclude raw evidence bodies, summaries, acceptance checks, policy and credentials;
-- [x] Agency Agent PR #13 Repository Quality passes — 71 tests plus PostgreSQL/container production gates;
-- [x] squash merge to Agency Agent `main` at `dc9cf4b4726d2ee686655d5d2221fce169261978`;
-- [x] post-merge Agency Agent Repository Quality passes all three jobs.
+- one bounded read-only project snapshot: `GET /api/v1/projects/{project_id}/agent-world`;
+- bearer auth + scoped read permissions;
+- compact task contract;
+- verification counts, latest agent/activity, token/cost telemetry;
+- Evaluator verdict, SilverGuard disposition and release readiness;
+- raw evidence/policy/credentials excluded;
+- Agency Agent PR #13 passes Repository Quality — 71 tests + PostgreSQL/container gates;
+- squash merge to Agency Agent `main` at `dc9cf4b4726d2ee686655d5d2221fce169261978`.
 
 Agent World side:
 
-- [x] consume one `/agent-world` snapshot per project;
-- [x] retain `/tasks` fallback only for an older API returning 404;
-- [x] surface execution model, owner and most recent agent;
-- [x] surface verification counts;
-- [x] surface Evaluator and SilverGuard verdict/disposition;
-- [x] surface Agency Agent release readiness without setting `prState`;
-- [x] surface compact token/cost telemetry;
-- [x] keep enrichment in additive SilverKen UI modules instead of rewriting the upstream HUD;
-- [x] add local smoke instructions for Windows/macOS/Linux;
-- [x] Agent World PR #4 quality gate passes — 47/47 tests, runtime audit and production build;
-- [x] squash merge Agent World PR #4 to `main` at `d2d9d7e7d5f631edb1e0107bf5061581b14b4c31`;
-- [x] post-merge Agent World quality gate passes;
-- [x] real-machine smoke with local Agency Agent token;
-- [x] real Agency Agent project/task visible in the 3D colony with `SINGLE_AGENT` and `Owner · Orchestrator` context.
+- consume one `/agent-world` snapshot per project;
+- `/tasks` fallback only for older APIs returning 404;
+- surface execution model, owner/current agent, verification, Evaluator, SilverGuard, release, tokens/cost;
+- Agency Agent release readiness never sets GitHub `prState`;
+- PR #4 passes — 47/47 tests, audit and build;
+- squash merge at `d2d9d7e7d5f631edb1e0107bf5061581b14b4c31`;
+- real Windows smoke confirms live governed data in the 3D colony.
 
-### AW5B — GitHub / PR / CI context ⚙️ code + main CI complete
+### AW5B — GitHub / PR / CI context ✅
 
 Goal: add delivery evidence without confusing GitHub state with Agency Agent governance.
 
 Implementation evidence:
 
-- [x] optional GitHub enrichment disabled by default;
-- [x] server-side token only; no GitHub credential in normalized thread, `ref`, SKOPS payload or colony state;
-- [x] GET-only GitHub API access;
-- [x] 30-second local cache and bounded request timeout;
-- [x] automatic `github.com` origin/branch resolution for local harness checkouts;
-- [x] explicit Agency Agent project → GitHub repository mapping when no local repo path is available;
-- [x] pull-request number/state context;
-- [x] checks + legacy status aggregation into PASS / FAIL / PENDING / NONE;
-- [x] real GitHub `merged_at` evidence is the only GitHub source that sets `prState=MERGED`;
-- [x] compact GitHub / PR / CI badges on Agency Agent cards in English and French;
-- [x] GitHub failures/rate limits/auth failures degrade to the original harness thread;
-- [x] configuration and security documentation in `docs/github-context.md`;
-- [x] PR #7 quality gate passes — 59/59 tests, runtime audit and production build;
-- [x] squash merge PR #7 to `main` at `3b70f947121f4eca3637c47e2087d79243f52f59`;
-- [x] post-merge `main` quality gate passes;
-- [ ] real-machine smoke against an actual mapped GitHub repository/branch/PR.
+- optional GitHub enrichment disabled by default;
+- server-side token only; no credential in normalized thread, `ref`, SKOPS payload or colony state;
+- GET-only GitHub API access;
+- 30-second cache, bounded request timeout and bounded enriched-thread count;
+- automatic `github.com` origin/branch resolution for local harness checkouts;
+- explicit Agency Agent project → GitHub repository mapping;
+- explicit project → branch override for projects with no local checkout/branch;
+- thread-provided branch evidence remains authoritative over an override;
+- PR number/state and checks + legacy status aggregation;
+- real GitHub `merged_at` is the only GitHub evidence that sets `prState=MERGED`;
+- compact GitHub / PR / CI badges in English and French;
+- GitHub failures/rate limits/auth failures degrade to the original harness thread;
+- configuration and security documentation in `docs/github-context.md` and `docs/github-branch-overrides.md`.
+
+Quality evidence:
+
+- PR #7 initial AW5B implementation — 59/59 tests + audit + build;
+- squash merge at `3b70f947121f4eca3637c47e2087d79243f52f59`;
+- PR #10 branch-mapping hardening — 64/64 tests + audit + build;
+- squash merge at `dfb5e3f620219fb7a2327c0d1b2501a6809c8857`.
+
+Real-machine smoke evidence:
+
+- real Windows Operator machine;
+- Agency Agent harness `detected=true` with authenticated `Tuce` thread;
+- `Tuce` explicitly mapped to `Silverken92/silverken-agent-world`;
+- `Tuce` explicitly mapped to branch `smoke/aw5b-live`;
+- real PR #11 detected as `OPEN`;
+- real GitHub Actions result detected as `CI PASS 1/1`;
+- PR #11 squash-merged at `de81cba747307e0823bb6c6c99b93eb8cf7950a5`;
+- same live thread refreshed to `prState=MERGED` while CI remained PASS;
+- smoke marker removed after validation.
 
 Agency Agent `Livraison · PRÊT` and GitHub `PR #… · FUSIONNÉE` remain deliberately separate evidence domains.
 
-## AW6 — Governed Navigation
+## AW6 — Governed Navigation ⏭️ CURRENT
 
-Goal: make Agent World a fast visual entry point into authoritative systems.
+Goal: make Agent World a fast visual entry point into authoritative systems while remaining read-only.
 
-Examples:
+Planned scope:
 
-- open Agency Agent Operator task page;
-- open GitHub PR;
-- open repository/worktree;
-- open relevant logs/evidence.
+- open the corresponding Agency Agent Operator task page;
+- open a real GitHub PR when `prUrl` is available;
+- open repository/worktree/folder when supported by the source harness;
+- expose relevant logs/evidence navigation without copying credentials into URLs;
+- distinguish unavailable navigation from auth/permission failures;
+- preserve the browser/server trust boundary.
 
-Navigation must not mutate governed state, and no bearer token may appear in a URL.
+Exit criteria:
+
+- navigation targets are derived only from authoritative normalized metadata;
+- no bearer token appears in a URL, DOM data attribute or browser-persisted state;
+- navigation actions do not mutate Agency Agent or GitHub state;
+- unit tests cover allowed/denied/unavailable navigation paths;
+- real-machine smoke verifies at least Operator task + GitHub PR navigation.
 
 ## AW7 — Optional Governed Actions
 
