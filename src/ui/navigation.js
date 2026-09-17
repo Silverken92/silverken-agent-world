@@ -16,7 +16,9 @@ function safeHttpUrl(value, { githubOnly = false } = {}) {
 function githubRepoUrl(repo) {
   const value = typeof repo === 'string' ? repo.trim() : ''
   if (!/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/.test(value)) return ''
-  return `https://github.com/${value}`
+  const [owner, name] = value.split('/')
+  if (owner === '.' || owner === '..' || name === '.' || name === '..') return ''
+  return `https://github.com/${owner}/${name}`
 }
 
 export function governedNavigation(data, locale = 'en') {
