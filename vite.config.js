@@ -1,11 +1,25 @@
 import { defineConfig } from 'vite'
 import { apiMiddleware } from './server/api.mjs'
+import { governedActionHandler } from './server/governed-actions.mjs'
+
+/**
+ * Vite dev must expose the same governed-action route as the production server.
+ * Keep the dedicated handler ahead of the generic /api middleware: apiMiddleware
+ * intentionally knows nothing about this AW7 mutation-request gateway.
+ */
+export function devApiMiddleware(req, res, next) {
+  const url = new URL(req.url, 'http://localhost')
+  if (url.pathname === '/api/governed-action') {
+    return governedActionHandler(req, res)
+  }
+  return apiMiddleware(req, res, next)
+}
 
 /** Serves /api from inside the Vite dev server, so `npm run dev` is the whole game. */
 const api = () => ({
   name: 'bot-crossing-api',
   configureServer(server) {
-    server.middlewares.use(apiMiddleware)
+    server.middlewares.use(devApiMiddleware)
   },
 })
 

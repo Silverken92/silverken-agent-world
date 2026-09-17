@@ -9,6 +9,7 @@ import {
   governedActionModel,
   submitGovernedAction,
 } from '../src/ui/governed-actions.js'
+import { devApiMiddleware } from '../vite.config.js'
 
 test('governed action is contextual and remains a request, never a direct mutation verb', () => {
   assert.equal(actionForStatus('BACKLOG'), ACTIONS.HUMAN)
@@ -78,6 +79,40 @@ test('browser submits governed intent only to same-origin Agent World gateway', 
   })
   assert.equal(JSON.stringify(seen).includes('Authorization'), false)
   assert.equal(JSON.stringify(seen).includes('aa_'), false)
+})
+
+test('Vite dev server wires the governed-action gateway before the generic API router', async () => {
+  const req = {
+    url: '/api/governed-action',
+    method: 'GET',
+    headers: {
+      host: 'localhost:5274',
+      origin: 'http://localhost:5274',
+    },
+  }
+  const observed = { status: 0, body: '' }
+  const res = {
+    writeHead(status) {
+      observed.status = status
+      return this
+    },
+    end(body = '') {
+      observed.body = String(body)
+      return this
+    },
+  }
+
+  let fellThrough = false
+  await devApiMiddleware(req, res, () => {
+    fellThrough = true
+  })
+
+  assert.equal(fellThrough, false)
+  assert.equal(observed.status, 405)
+  assert.deepEqual(JSON.parse(observed.body), {
+    ok: false,
+    error: 'Method not allowed',
+  })
 })
 
 test('governed action gateway is loopback-origin only', () => {
