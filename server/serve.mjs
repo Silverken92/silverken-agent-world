@@ -3,6 +3,7 @@ import fsp from 'node:fs/promises'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { apiMiddleware } from './api.mjs'
+import { governedActionHandler } from './governed-actions.mjs'
 
 const here = path.dirname(fileURLToPath(import.meta.url))
 const DIST = path.join(here, '..', 'dist')
@@ -29,6 +30,10 @@ function resolveInDist(pathname) {
 
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, 'http://localhost')
+
+  if (url.pathname === '/api/governed-action') {
+    return governedActionHandler(req, res)
+  }
 
   if (url.pathname.startsWith('/api/')) {
     return apiMiddleware(req, res, null)
