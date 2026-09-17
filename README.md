@@ -8,7 +8,7 @@ This repository is a fork of **[Station-Sciences/bot-crossing](https://github.co
 
 ## Status
 
-**Current milestone: AW8 — Productization & Local Launcher**
+**Latest completed milestone: AW8 — Productization & Local Launcher**
 
 | Capability | Status |
 | --- | --- |
@@ -23,7 +23,7 @@ This repository is a fork of **[Station-Sciences/bot-crossing](https://github.co
 | Real PR `OPEN → MERGED` + CI PASS smoke | ✅ Windows operator machine |
 | Governed deep navigation | ✅ AW6 real-machine smoke |
 | Governed request actions + audit | ✅ AW7 real-machine smoke |
-| Persistent machine config + one-command launcher | 🟠 AW8 current |
+| Persistent machine config + one-command launcher | ✅ AW8 real-machine smoke |
 
 ## Architecture
 
@@ -58,7 +58,7 @@ SilverKen Agent World
 
 **Authority stays in Agency Agent.** Agent World may visualize, navigate and record a deliberately small request vocabulary, but it does not bypass RBAC, SilverGuard, verification, approvals, release gates or audit controls. GitHub PR/CI state remains a separate evidence domain and never substitutes for Agency Agent governance.
 
-## Quick start — AW8 local launcher
+## Quick start — local launcher
 
 Requirements:
 
@@ -94,6 +94,8 @@ npm run dev
 ```
 
 If `agencyAgent.autoStart` is enabled and Agency Agent is not already healthy, the launcher starts its `.venv` CLI, waits for `/health`, then starts Agent World. Token values are never printed.
+
+The Windows AW8 smoke confirmed the intended daily flow: local config loaded, doctor passed, Agency Agent was initially not running, auto-start prerequisites were valid, and `Tuce` returned in the 3D surface after launcher boot.
 
 See [`docs/local-launcher.md`](docs/local-launcher.md).
 
@@ -146,7 +148,7 @@ source → silverken-agent-world
 
 ## Optional GitHub context
 
-For projects without a local checkout, map project names explicitly. The AW8 local config supports the same mappings without requiring PowerShell environment variables every launch.
+For projects without a local checkout, map project names explicitly. The local config supports the same mappings without requiring PowerShell environment variables every launch.
 
 ```json
 {
@@ -195,7 +197,13 @@ GitHub PR OPEN → MERGED + CI PASS     ✅
 Ouvrir dans Operator deep navigation  ✅
 Governed request recorded in audit    ✅
 Persistent success UX                 ✅
+Machine-local config                  ✅
+Token-safe doctor                     ✅
+One-command launcher                  ✅
+Agency Agent auto-start path          ✅
 ```
+
+AW8 PR #17 merged at `efb982def6052bb58129a5aaf671ddf0766e6503` with a green post-merge quality gate: **79/79 tests**, runtime dependency audit and production build.
 
 ## Roadmap
 
@@ -211,8 +219,10 @@ AW5A Governed operational enrichment     ✅
 AW5B GitHub / PR / CI enrichment         ✅
 AW6  Governed navigation                 ✅
 AW7  Governed action requests            ✅
-AW8  Productization & local launcher     🟠 current
+AW8  Productization & local launcher     ✅
 ```
+
+Next candidates are listed in the roadmap; no automatic execution from governed requests is pre-approved.
 
 ## Upstream relationship
 
