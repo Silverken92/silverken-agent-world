@@ -100,20 +100,27 @@ function safeCosts(value) {
   return out
 }
 
-function operatorTaskUrl(projectId, taskId) {
+function operatorUrl(projectId, { taskId = '', view = 'tasks' } = {}) {
   try {
     const url = new URL('/ui', `${baseUrl()}/`)
     if (!['http:', 'https:'].includes(url.protocol) || url.username || url.password) return ''
     const safeProjectId = safeText(projectId, 160)
-    const safeTaskId = safeText(taskId, 160)
-    if (!safeProjectId || !safeTaskId) return ''
+    if (!safeProjectId) return ''
     url.searchParams.set('project', safeProjectId)
-    url.searchParams.set('task', safeTaskId)
-    url.searchParams.set('view', 'tasks')
+    if (taskId) url.searchParams.set('task', safeText(taskId, 160))
+    url.searchParams.set('view', safeText(view, 32) || 'tasks')
     return url.toString()
   } catch {
     return ''
   }
+}
+
+function operatorTaskUrl(projectId, taskId) {
+  return operatorUrl(projectId, { taskId, view: 'tasks' })
+}
+
+function operatorAgentsUrl(projectId) {
+  return operatorUrl(projectId, { view: 'agents' })
 }
 
 function branchFor(task) {
@@ -239,7 +246,7 @@ function toThread(project, record) {
   const updatedAt = Math.max(taskUpdatedAt, activityAt)
   const status = task.status || 'BACKLOG'
   const serializedSize = textBytes(JSON.stringify(record))
-  const operatorUrl = operatorTaskUrl(project.project_id, task.id)
+  const operatorTask = operatorTaskUrl(project.project_id, task.id)
   const threadId = `agency-agent:${project.project_id}:${task.id}`
 
   return {
@@ -251,7 +258,7 @@ function toThread(project, record) {
     worktree: worktreeFor(task),
     cwd: '',
     gitBranch: branchFor(task),
-    model: encodeOperationalModel(ops, { operatorUrl, threadId, status }) || task.execution_model || 'AGENCY_AGENT',
+    model: encodeOperationalModel(ops, { operatorUrl: operatorTask, threadId, status }) || task.execution_model || 'AGENCY_AGENT',
     effort: (task.risk || '').toLowerCase(),
     createdAt,
     lastActivityAt: updatedAt,
@@ -271,6 +278,82 @@ function toThread(project, record) {
       taskId: task.id,
       status,
       ownerAgent: task.owner_agent || '',
+    },
+  }
+}
+
+function toAgentThread(project, profile, taskRecords = []) {
+  const agentName = safeText(profile?.name, 128) || 'Agency Agent'
+  const agentId = safeText(profile?.agent_id, 160)
+  const owned = taskRecords.filter((record) => {
+    const task = record?.task && typeof record.task === 'object' ? record.task : record
+    return task?.owner_agent === agentName && task?.status !== 'DONE'
+  })
+  const ownedTasks = owned.map((record) => record?.task || record)
+  const running = ownedTasks.some((task) => ACTIVE_STATUSES.has(task.status || ''))
+  const unread = ownedTasks.some((task) => UNREAD_STATUSES.has(task.status || ''))
+  const hasError = ownedTasks.some((task) => ERROR_STATUSES.has(task.status || ''))
+  const createdAt = epochMs(profile?.created_at)
+  const profileUpdated = epochMs(profile?.updated_at) || createdAt
+  const taskActivity = owned.reduce((latest, record) => {
+    const task = record?.task || record
+    const ops = compactOperational(record, task)
+    return Math.max(latest, epochMs(task?.updated_at), epochMs(ops?.activity.latestEventAt))
+  }, 0)
+  const lastActivityAt = Math.max(profileUpdated, taskActivity)
+  const threadId = `agency-agent-profile:${project.project_id}:${agentId}`
+  const role = safeText(profile?.role, 80) || 'AGENT'
+  const description = safeText(profile?.description, 280)
+  const ops = {
+    executionModel: `AGENT · ${role}`,
+    ownerAgent: agentName,
+    risk: '',
+    verification: { total: 0, pass: 0, fail: 0, unknown: 0, notRun: 0 },
+    activity: {
+      eventCount: 0,
+      latestEventType: running ? 'ASSIGNED_WORK_ACTIVE' : '',
+      latestEventAt: '',
+      latestAgentId: '',
+      tokenUsage: 0,
+      costByCurrency: {},
+    },
+    evaluator: null,
+    silverguard: null,
+    release: null,
+    governedRequest: null,
+  }
+  const registryUrl = operatorAgentsUrl(project.project_id)
+
+  return {
+    id: threadId,
+    title: agentName,
+    preview: description || `Registered ${role} agent`,
+    project: project.name || project.slug || 'Agency Agent',
+    projectPath: '',
+    worktree: '',
+    cwd: '',
+    gitBranch: '',
+    model: encodeOperationalModel(ops, { operatorUrl: registryUrl, threadId, status: profile?.enabled === false ? 'DISABLED' : 'REGISTERED' }),
+    effort: '',
+    createdAt,
+    lastActivityAt,
+    lastFocusedAt: 0,
+    running,
+    unread,
+    hasError,
+    starred: false,
+    routine: false,
+    archived: profile?.enabled === false,
+    sizeBytes: Math.max(textBytes(JSON.stringify(profile || {})), 1),
+    source: 'agency-agent',
+    canOpen: false,
+    operational: ops,
+    ref: {
+      projectId: project.project_id,
+      agentId,
+      agentName,
+      role,
+      profile: true,
     },
   }
 }
@@ -321,7 +404,11 @@ async function scanProject(project) {
     const snapshot = await requestJson(`/api/v1/projects/${projectId}/agent-world`)
     const snapshotProject = snapshot?.project || project
     const tasks = Array.isArray(snapshot?.tasks) ? snapshot.tasks : []
-    return tasks.map((record) => toThread(snapshotProject, record))
+    const agents = Array.isArray(snapshot?.agents) ? snapshot.agents : []
+    return [
+      ...agents.map((profile) => toAgentThread(snapshotProject, profile, tasks)),
+      ...tasks.map((record) => toThread(snapshotProject, record)),
+    ]
   } catch (error) {
     if (error.status !== 404) throw error
     const tasks = await requestJson(`/api/v1/projects/${projectId}/tasks`)
@@ -382,7 +469,9 @@ export {
   OPS_MODEL_PREFIX,
   compactOperational,
   encodeOperationalModel,
+  operatorAgentsUrl,
   operatorTaskUrl,
   requestGovernedAction,
+  toAgentThread,
   toThread,
 }
