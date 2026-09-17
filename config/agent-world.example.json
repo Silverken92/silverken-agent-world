@@ -1,0 +1,15 @@
+{
+  "agencyAgent": {
+    "url": "http://127.0.0.1:8787",
+    "token": "",
+    "repoPath": "../agency-agent",
+    "autoStart": true
+  },
+  "github": {
+    "token": "",
+    "projects": {
+      "f-Silverken-Plateform": "Silverken92/silverken-platform"
+    },
+    "branches": {}
+  }
+}
