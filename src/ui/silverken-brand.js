@@ -1,6 +1,8 @@
 import './operational.css'
+import './navigation.css'
 import { getLocale, setLocale, t, translateLiteral, translateRelativeTime } from './i18n.js'
 import { decodeOperationalModel, operationalBadges } from './operational.js'
+import { governedNavigation } from './navigation.js'
 
 const BRAND_NAME = 'SilverKen Agent World'
 let currentLocale = getLocale()
@@ -78,26 +80,67 @@ function ensureLanguageControl(root) {
   select.setAttribute('aria-label', t('language', currentLocale))
 }
 
-function applyOperationalBadges(root = document) {
-  for (const tag of root.querySelectorAll('.thread-pop .meta .tag')) {
-    const data = decodeOperationalModel(tag.textContent || '')
-    if (!data) continue
+function renderNavigation(card, data) {
+  const actions = governedNavigation(data, currentLocale)
+  let nav = card.querySelector('.sk-nav')
+  if (!actions.length) {
+    nav?.remove()
+    return
+  }
+  if (!nav) {
+    nav = document.createElement('div')
+    nav.className = 'sk-nav'
+    const pair = card.querySelector('.pair')
+    if (pair) pair.insertAdjacentElement('beforebegin', nav)
+    else card.appendChild(nav)
+  }
+  nav.replaceChildren()
+  for (const action of actions) {
+    const link = document.createElement('a')
+    link.className = `btn sk-nav-link ${action.kind}`
+    link.href = action.url
+    link.target = '_blank'
+    link.rel = 'noopener noreferrer'
+    link.textContent = action.label
+    link.title = action.title
+    nav.appendChild(link)
+  }
+}
 
-    const badges = operationalBadges(data, currentLocale)
-    if (!badges.length) {
-      tag.remove()
+function applyOperationalBadges(root = document) {
+  for (const card of root.querySelectorAll('.thread-pop')) {
+    const meta = card.querySelector('.meta')
+    if (!meta) continue
+
+    const rawTag = [...meta.querySelectorAll('.tag')].find((tag) => decodeOperationalModel(tag.textContent || ''))
+    if (rawTag) {
+      card.dataset.skops = rawTag.textContent || ''
+      rawTag.remove()
+      card.dataset.skRenderKey = ''
+    } else if (card.dataset.skops && !meta.querySelector('.sk-op')) {
+      delete card.dataset.skops
+      delete card.dataset.skRenderKey
+      card.querySelector('.sk-nav')?.remove()
       continue
     }
 
-    const fragment = document.createDocumentFragment()
+    const encoded = card.dataset.skops || ''
+    const data = decodeOperationalModel(encoded)
+    if (!data) continue
+    const renderKey = `${currentLocale}|${encoded}`
+    if (card.dataset.skRenderKey === renderKey) continue
+
+    meta.querySelectorAll('.sk-op').forEach((node) => node.remove())
+    const badges = operationalBadges(data, currentLocale)
     for (const badge of badges) {
       const el = document.createElement('span')
       el.className = `tag sk-op ${badge.tone}`
       el.textContent = badge.label
       if (badge.title) el.title = badge.title
-      fragment.appendChild(el)
+      meta.appendChild(el)
     }
-    tag.replaceWith(fragment)
+    renderNavigation(card, data)
+    card.dataset.skRenderKey = renderKey
   }
 }
 
