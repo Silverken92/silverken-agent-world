@@ -35,12 +35,28 @@ function copyFor(action, locale = 'en') {
   }
 }
 
+function serverActionState(data, action) {
+  if (!Array.isArray(data?.q) || data.q.length < 2) return ''
+  const status = String(data.q[0] || '').toUpperCase()
+  const serverAction = String(data.q[1] || '')
+  if (serverAction !== action) return ''
+  if (status === 'RECORDED') return 'recorded'
+  if (status === 'ACKNOWLEDGED') return 'acknowledged'
+  return ''
+}
+
 function governedActionModel(data, locale = 'en') {
   const threadId = typeof data?.x?.i === 'string' ? data.x.i : ''
   if (!threadId.startsWith('agency-agent:')) return null
   const status = typeof data?.x?.s === 'string' ? data.x.s : ''
   const action = actionForStatus(status)
-  return { threadId, status, action, ...copyFor(action, locale) }
+  return {
+    threadId,
+    status,
+    action,
+    serverState: serverActionState(data, action),
+    ...copyFor(action, locale),
+  }
 }
 
 function governedActionKey(model) {
@@ -48,7 +64,7 @@ function governedActionKey(model) {
 }
 
 function governedActionState(model) {
-  return governedActionStates.get(governedActionKey(model)) || ''
+  return governedActionStates.get(governedActionKey(model)) || model?.serverState || ''
 }
 
 function setGovernedActionState(model, state) {
@@ -65,6 +81,7 @@ function clearGovernedActionStates() {
 function actionStateCopy(state, locale, model) {
   if (state === 'pending') return locale === 'fr' ? 'Enregistrement…' : 'Recording…'
   if (state === 'recorded') return locale === 'fr' ? 'Demande enregistrée ✓' : 'Request recorded ✓'
+  if (state === 'acknowledged') return locale === 'fr' ? 'Demande prise en compte ✓' : 'Request acknowledged ✓'
   return model.label
 }
 
@@ -106,7 +123,7 @@ function renderGovernedAction(card, data, locale = 'en') {
   button.type = 'button'
   button.className = 'btn sk-governed-action'
   const initialState = governedActionState(model)
-  button.disabled = initialState === 'pending' || initialState === 'recorded'
+  button.disabled = initialState === 'pending' || initialState === 'recorded' || initialState === 'acknowledged'
   button.textContent = actionStateCopy(initialState, locale, model)
   button.title = locale === 'fr'
     ? 'Enregistre une demande gouvernée dans Agency Agent ; aucune action sensible n’est exécutée directement'
@@ -146,6 +163,7 @@ export {
   governedActionModel,
   governedActionState,
   renderGovernedAction,
+  serverActionState,
   setGovernedActionState,
   submitGovernedAction,
 }
