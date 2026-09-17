@@ -1,31 +1,29 @@
 # SilverKen Agent World
 
-> A 3D, read-only visual control center for AI coding agents.
+> A governed 3D operations surface for AI coding agents.
 
 SilverKen Agent World turns coding-agent work into a navigable colony: repositories become zones, sessions/tasks become astronauts and buildings, and operational states become visible behavior.
 
-This repository is a fork of **[Station-Sciences/bot-crossing](https://github.com/Station-Sciences/bot-crossing)** by Jarren Rocks. The original Three.js colony engine, local-first architecture, assets and interaction model remain under the upstream MIT license. SilverKen extends that foundation with Agency Agent integration, governed operational evidence, optional GitHub PR/CI context and a French/English product layer.
+This repository is a fork of **[Station-Sciences/bot-crossing](https://github.com/Station-Sciences/bot-crossing)** by Jarren Rocks. The original Three.js colony engine, local-first architecture, assets and interaction model remain under the upstream MIT license. SilverKen extends that foundation with Agency Agent integration, governed operational evidence, optional GitHub PR/CI context, governed request actions and a French/English product layer.
 
 ## Status
 
-**Current milestone: AW6 — Governed Navigation**
+**Current milestone: AW8 — Productization & Local Launcher**
 
 | Capability | Status |
 | --- | --- |
 | Bot Crossing 3D colony engine | ✅ inherited upstream |
 | Claude Code / Codex / Cursor harnesses | ✅ inherited upstream |
 | Agency Agent harness + state mapping | ✅ SilverKen extension |
-| Read-only governance boundary | ✅ enforced |
-| Agency Agent health/auth diagnostics | ✅ real-machine validated |
 | SilverKen visual identity | ✅ AW4 |
-| French / English UI switch | ✅ persisted locally |
+| French / English UI switch | ✅ real-machine validated |
 | Agency Agent operational snapshot | ✅ AW5A |
 | Verification / Evaluator / SilverGuard / release badges | ✅ AW5A |
-| Token/cost telemetry | ✅ AW5A |
 | GitHub repository / PR / CI enrichment | ✅ AW5B |
 | Real PR `OPEN → MERGED` + CI PASS smoke | ✅ Windows operator machine |
-| Governed deep navigation | ⏭️ AW6 |
-| Optional governed actions | ⏭️ AW7 |
+| Governed deep navigation | ✅ AW6 real-machine smoke |
+| Governed request actions + audit | ✅ AW7 real-machine smoke |
+| Persistent machine config + one-command launcher | 🟠 AW8 current |
 
 ## Architecture
 
@@ -34,13 +32,13 @@ Agency Agent
   SilverFlow / SilverGuard / Evaluator / Durable Knowledge
   Operator API
        │
-       │ authenticated read-only snapshots
+       │ authenticated snapshots + narrowly governed requests
        ▼
 server/harnesses/agency-agent.mjs
        │
        │ normalized Thread[] + compact operational context
        ▼
-optional read-only GitHub enrichment
+optional GitHub enrichment
        │
        │ repository / branch / PR / checks
        ▼
@@ -54,75 +52,117 @@ SilverKen Agent World
        ├─ verification failure → !
        ├─ governed evidence → compact badges
        ├─ real GitHub merged PR → merged state / celebration
-       └─ done → archived/retired
+       ├─ navigation → authoritative Operator / GitHub surfaces
+       └─ governed request → Agency Agent RBAC + audit
 ```
 
-**Authority stays in Agency Agent.** Agent World is a visualization consumer. It does not bypass RBAC, SilverGuard, verification, approvals, release gates or audit controls. GitHub PR/CI state is a separate evidence domain and never substitutes for Agency Agent governance.
+**Authority stays in Agency Agent.** Agent World may visualize, navigate and record a deliberately small request vocabulary, but it does not bypass RBAC, SilverGuard, verification, approvals, release gates or audit controls. GitHub PR/CI state remains a separate evidence domain and never substitutes for Agency Agent governance.
 
-## AW5 operational enrichment
+## Quick start — AW8 local launcher
 
-Agency Agent exposes one bounded read-only snapshot per project:
+Requirements:
+
+- Node.js **22.13+**
+- npm
+- optional but recommended: a working sibling `agency-agent` checkout with `.venv`
+
+First time:
+
+```powershell
+npm ci
+npm run setup
+```
+
+Then edit the generated, Git-ignored file:
+
+```text
+config/agent-world.local.json
+```
+
+Put your Agency Agent URL/token there once. With sibling repositories, the default `../agency-agent` path is enough.
+
+Check the machine:
+
+```powershell
+npm run doctor
+```
+
+Daily launch:
+
+```powershell
+npm run dev
+```
+
+If `agencyAgent.autoStart` is enabled and Agency Agent is not already healthy, the launcher starts its `.venv` CLI, waits for `/health`, then starts Agent World. Token values are never printed.
+
+See [`docs/local-launcher.md`](docs/local-launcher.md).
+
+### Legacy / automation environment variables
+
+Environment variables still work and take precedence over the local file:
+
+```powershell
+$env:AGENCY_AGENT_URL="http://127.0.0.1:8787"
+$env:AGENCY_AGENT_TOKEN="aa_your_token_here"
+npm run dev
+```
+
+This keeps CI and existing scripts backward compatible.
+
+## French / English UI
+
+A compact **FR / EN** selector is available in the SilverKen header. First launch follows the browser language; the choice is remembered locally.
+
+The real-machine smoke validated the French governed view, including labels such as `Vue gouvernée`, `Actions gouvernées`, `Tous les projets`, `Nouvelle session`, `Ouvrir dans Operator` and `Demande enregistrée ✓`.
+
+## Governed Agency Agent integration
+
+Agency Agent exposes one bounded project snapshot:
 
 ```text
 GET /api/v1/projects/{project_id}/agent-world
 ```
 
-The snapshot contains only the operational context needed by the visualization: owner/current agent, verification counts, Evaluator verdict, SilverGuard disposition, release readiness, aggregate token/cost telemetry and workspace/branch hints. Raw evidence bodies, acceptance checks, credentials and policy are not replicated.
+The visualization receives only the operational context it needs: owner/current agent, verification counts, Evaluator verdict, SilverGuard disposition, release readiness, aggregate token/cost telemetry and workspace/branch hints. Raw evidence bodies, credentials and policy are not replicated.
 
-`Livraison · PRÊT` is an Agency Agent governance signal. It is **not** treated as GitHub merge evidence.
+AW6 adds safe navigation back to the authoritative Operator UI. AW7 adds only three request intents:
 
-AW5B optionally adds real GitHub repository, branch, pull-request and CI/check context. It is cached locally, GET-only and keeps GitHub credentials server-side. Repository mappings and optional branch mappings allow Agency Agent projects without a local checkout to resolve GitHub context.
+```text
+REQUEST_HUMAN_REVIEW
+REQUEST_RISK_REVIEW
+REQUEST_VERIFICATION_RETRY
+```
+
+A request requires a rationale, is loopback-gated in Agent World, re-resolves the canonical task server-side, and becomes an Agency Agent `governed_action.requested` audit event. The request itself does **not** transition a task, approve risk, retry verification, execute tools, write files or merge a PR.
+
+The Windows AW7 smoke confirmed:
+
+```text
+3D button → rationale → Demande enregistrée ✓
+Agency Agent audit → governed_action.requested / SUCCESS
+requested_action → REQUEST_HUMAN_REVIEW
+source → silverken-agent-world
+```
+
+## Optional GitHub context
+
+For projects without a local checkout, map project names explicitly. The AW8 local config supports the same mappings without requiring PowerShell environment variables every launch.
+
+```json
+{
+  "github": {
+    "token": "",
+    "projects": {
+      "f-Silverken-Plateform": "Silverken92/silverken-platform"
+    },
+    "branches": {}
+  }
+}
+```
+
+GitHub credentials remain server-side. Public repositories can work without a token subject to API limits.
 
 See [`docs/github-context.md`](docs/github-context.md) and [`docs/github-branch-overrides.md`](docs/github-branch-overrides.md).
-
-## French / English UI
-
-The SilverKen layer keeps the upstream renderer/HUD architecture intact and adds product styling and localization additively.
-
-A compact **FR / EN** selector is available in the SilverKen header. First launch follows the browser language; the choice is remembered locally.
-
-The real-machine smoke validated the French governed view, including labels such as `Vue gouvernée`, `Lecture seule`, `Tous les projets`, `Nouvelle session`, `Explorer` and Agency Agent/GitHub operational badges.
-
-## Requirements
-
-- Node.js **22.13+**
-- npm
-- optional: a running Agency Agent Operator API
-- optional: GitHub read access for private repository PR/CI context
-
-## Run
-
-```bash
-npm ci
-npm run dev
-```
-
-### With Agency Agent
-
-Start Agency Agent separately, create an Operator API token, then export:
-
-```bash
-export AGENCY_AGENT_URL=http://127.0.0.1:8787
-export AGENCY_AGENT_TOKEN=aa_your_token_here
-npm run dev
-```
-
-Agency Agent is detected through `/health`; missing, rejected or under-authorized bearer tokens are reported without breaking other harnesses.
-
-For the complete Windows/macOS/Linux walkthrough, see [`docs/local-smoke.md`](docs/local-smoke.md).
-
-### Optional GitHub context
-
-For a project without a local checkout, map the project name explicitly. Example on PowerShell:
-
-```powershell
-$env:AGENT_WORLD_GITHUB_TOKEN=(gh auth token) # optional for public repos
-$env:AGENT_WORLD_GITHUB_PROJECTS='{"Tuce":"Silverken92/silverken-agent-world"}'
-$env:AGENT_WORLD_GITHUB_BRANCHES='{"Tuce":"feature/example"}'
-npm run dev
-```
-
-Do not commit or share tokens. Public repository mappings can work without a token, subject to GitHub API limits.
 
 ## Agency Agent state mapping
 
@@ -135,7 +175,7 @@ Do not commit or share tokens. Public repository mappings can work without a tok
 
 The mapping visualizes operational state; it does not create a second source of truth.
 
-## Quality and real-machine evidence
+## Quality
 
 ```bash
 npm audit --omit=dev --audit-level=high
@@ -145,29 +185,16 @@ npm run build
 
 Repository CI runs runtime dependency audit, tests and production build on pull requests and pushes to `main`.
 
-Key evidence:
+Real-machine validation on Windows has confirmed:
 
 ```text
-Agency Agent snapshot API       71 tests + PostgreSQL/container production gates ✅
-Agent World AW5A                47 tests + audit + build ✅
-FR/EN localization              52 tests + audit + build ✅
-AW5B initial implementation     59 tests + audit + build ✅
-AW5B branch mapping hardening   64 tests + audit + build ✅
-AW5B real-machine smoke         PR #11 OPEN → MERGED, CI PASS 1/1 ✅
-```
-
-Real-machine validation on Windows confirmed:
-
-```text
-Agency Agent /health            OK
-Agency Agent authenticated scan OK
-Tuce project/task in 3D         OK
-French UI                       OK
-GitHub repo mapping             OK
-GitHub branch mapping           OK
-PR #11 OPEN                     OK
-CI PASS                         OK
-PR #11 MERGED                   OK
+Agency Agent authenticated scan       ✅
+Tuce task in 3D                       ✅
+French UI                             ✅
+GitHub PR OPEN → MERGED + CI PASS     ✅
+Ouvrir dans Operator deep navigation  ✅
+Governed request recorded in audit    ✅
+Persistent success UX                 ✅
 ```
 
 ## Roadmap
@@ -177,18 +204,19 @@ See [`ROADMAP.md`](ROADMAP.md).
 ```text
 AW1  Bridge contract                     ✅
 AW2  Repo bootstrap + adapter            ✅
-AW3  Live Agency Agent view              ✅ real-machine smoke
+AW3  Live Agency Agent view              ✅
 AW4  SilverKen visual identity           ✅
-I18N French / English UI                 ✅ real-machine smoke
-AW5A Governed operational enrichment     ✅ real 3D smoke
-AW5B GitHub / PR / CI enrichment         ✅ real OPEN→MERGED + CI smoke
-AW6  Governed navigation                 ⏭️ current
-AW7  Optional governed actions           ⏭️
+I18N French / English UI                 ✅
+AW5A Governed operational enrichment     ✅
+AW5B GitHub / PR / CI enrichment         ✅
+AW6  Governed navigation                 ✅
+AW7  Governed action requests            ✅
+AW8  Productization & local launcher     🟠 current
 ```
 
 ## Upstream relationship
 
-This fork deliberately keeps the Bot Crossing harness seam and read-only philosophy intact. Upstream improvements can be reviewed and selectively synced where they do not conflict with SilverKen governance or product direction.
+This fork deliberately keeps the Bot Crossing harness seam and core local-first philosophy intact. Upstream improvements can be reviewed and selectively synced where they do not conflict with SilverKen governance or product direction.
 
 - Upstream: `Station-Sciences/bot-crossing`
 - SilverKen fork: `Silverken92/silverken-agent-world`
@@ -197,10 +225,12 @@ This fork deliberately keeps the Bot Crossing harness seam and read-only philoso
 
 ## Security principles
 
-- no writes into external harness data;
+- no writes into external harness-owned files or databases;
 - Agency Agent access uses the Operator API, never direct database reads;
 - Agency Agent and GitHub tokens stay server-side and are never placed in thread `ref`, colony state or browser persistence;
-- bridge and GitHub enrichment remain read-only;
+- `config/agent-world.local.json` is explicitly ignored by Git;
+- diagnostics report only whether a token is configured, never its value;
+- governed actions are request-only and pass through Agency Agent RBAC/audit;
 - operational snapshots are data-minimized;
 - visual state never constitutes release approval, PR merge evidence or security evidence unless the corresponding authoritative source explicitly reports it.
 
