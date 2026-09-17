@@ -22,6 +22,7 @@ const GOVERNED_ACTIONS = new Set([
   'REQUEST_RISK_REVIEW',
   'REQUEST_VERIFICATION_RETRY',
 ])
+const GOVERNED_REQUEST_STATUSES = new Set(['RECORDED', 'ACKNOWLEDGED', 'RESOLVED'])
 
 function baseUrl() {
   return (process.env.AGENCY_AGENT_URL || DEFAULT_BASE_URL).replace(/\/$/, '')
@@ -127,6 +128,21 @@ function worktreeFor(task) {
   return workspace.workspace_id || ''
 }
 
+function compactGovernedRequest(record) {
+  const requests = Array.isArray(record?.governed_requests) ? record.governed_requests : []
+  const item = requests[0]
+  if (!item || typeof item !== 'object' || Array.isArray(item)) return null
+  const action = safeText(item.requested_action, 64)
+  const status = safeText(item.status, 32).toUpperCase()
+  if (!GOVERNED_ACTIONS.has(action) || !GOVERNED_REQUEST_STATUSES.has(status)) return null
+  return {
+    requestId: safeText(item.request_id, 160),
+    action,
+    status,
+    createdAt: safeText(item.created_at, 64),
+  }
+}
+
 function compactOperational(record, task) {
   if (!record || typeof record !== 'object' || !record.task) return null
 
@@ -177,6 +193,7 @@ function compactOperational(record, task) {
           releaseReady: release.release_ready === true,
         }
       : null,
+    governedRequest: compactGovernedRequest(record),
   }
 }
 
@@ -202,6 +219,9 @@ function encodeOperationalModel(ops, navigation = {}) {
     b: ops.silverguard?.blockingFindingCount || 0,
     r: ops.release ? ops.release.releaseReady : null,
     d: ops.release?.disposition || '',
+    q: ops.governedRequest
+      ? [ops.governedRequest.status, ops.governedRequest.action]
+      : undefined,
     t: ops.activity.tokenUsage,
     c: ops.activity.costByCurrency,
     x: Object.keys(extension).length ? extension : undefined,

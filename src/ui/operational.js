@@ -42,6 +42,27 @@ function verdictLabel(value, locale) {
   return labels[normalized] || String(value || '')
 }
 
+function governedRequestLabel(value, locale) {
+  const normalized = String(value || '').toUpperCase()
+  if (normalizeLocale(locale) !== 'fr') {
+    const labels = { RECORDED: 'RECORDED', ACKNOWLEDGED: 'ACKNOWLEDGED', RESOLVED: 'RESOLVED' }
+    return labels[normalized] || normalized
+  }
+  const labels = {
+    RECORDED: 'ENREGISTRÉE',
+    ACKNOWLEDGED: 'PRISE EN COMPTE',
+    RESOLVED: 'RÉSOLUE',
+  }
+  return labels[normalized] || normalized
+}
+
+function governedRequestTone(value) {
+  const normalized = String(value || '').toUpperCase()
+  if (normalized === 'RESOLVED') return 'success'
+  if (normalized === 'ACKNOWLEDGED') return 'agent'
+  return 'pending'
+}
+
 function githubPrLabel(value, locale) {
   const normalized = String(value || '').toUpperCase()
   if (normalizeLocale(locale) !== 'fr') return normalized
@@ -160,6 +181,20 @@ export function operationalBadges(data, locale = 'en') {
       data.r === true ? 'success' : verdictTone(disposition),
       fr ? 'Porte de livraison Agency Agent ; ne constitue pas une preuve de fusion GitHub' : 'Agency Agent release gate; not GitHub merge evidence'
     )
+  }
+
+  if (Array.isArray(data.q) && data.q.length >= 2) {
+    const requestStatus = String(data.q[0] || '').toUpperCase()
+    const requestAction = String(data.q[1] || '')
+    if (requestStatus) {
+      add(
+        `${fr ? 'Demande' : 'Request'} · ${governedRequestLabel(requestStatus, lang)}`,
+        governedRequestTone(requestStatus),
+        fr
+          ? `${requestAction} · état du suivi humain dans Agency Agent ; ne prouve pas l’exécution de l’action`
+          : `${requestAction} · human follow-up state in Agency Agent; does not prove action execution`
+      )
+    }
   }
 
   badges.push(...githubBadges(data, lang))
