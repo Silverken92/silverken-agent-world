@@ -340,7 +340,6 @@ function toThread(project, record, agentProfile = null, workspace = null) {
   const agentId = safeText(agentProfile?.agent_id, 160)
   const agentName = safeText(agentProfile?.name, 128)
   const workspaceInfo = compactWorkspace(workspace)
-  const capabilities = compactCapabilities(profile)
 
   return {
     id: threadId,
@@ -442,6 +441,7 @@ function toAgentThread(project, profile, taskRecords = [], workspace = null) {
   }
   const registryUrl = operatorAgentsUrl(project.project_id)
   const workspaceInfo = compactWorkspace(workspace)
+  const capabilities = compactCapabilities(profile)
 
   return {
     id: threadId,
