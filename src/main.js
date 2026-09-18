@@ -29,6 +29,7 @@ import { hideProject, hiddenCatalog, unhideProject } from './game/hidden-project
  */
 
 const POLL_MS = 15000
+const LIVE_MISSION_POLL_MS = 3000
 const app = document.getElementById('app')
 
 app.insertAdjacentHTML(
@@ -59,6 +60,7 @@ let selectedProject = null
 let hoverId = null
 let statusCursor = 0
 let pendingSave = 0
+let liveMissionPoll = 0
 const hoverGround = new THREE.Vector3()
 
 // ── actions the HUD can trigger ────────────────────────────────────────────────────────
@@ -592,6 +594,25 @@ window.addEventListener('keydown', (e) => {
 
 // ── data ──────────────────────────────────────────────────────────────────────────────
 
+function hasLiveSilverFlowMission(list = threads) {
+  return list.some((thread) =>
+    thread?.harness === 'agency-agent'
+    && ['RUNNING', 'INTEGRATING'].includes(thread?.ref?.orchestrationStatus || '')
+  )
+}
+
+function syncLiveMissionPolling() {
+  const live = hasLiveSilverFlowMission()
+  if (live && !liveMissionPoll) {
+    liveMissionPoll = setInterval(poll, LIVE_MISSION_POLL_MS)
+    return
+  }
+  if (!live && liveMissionPoll) {
+    clearInterval(liveMissionPoll)
+    liveMissionPoll = 0
+  }
+}
+
 function applyThreads(list) {
   // A thread you have said you looked at stops counting as unread until it moves on again.
   // Done here rather than in `statusFor` so the card, the badge and the astronaut all agree.
@@ -637,6 +658,10 @@ function applyThreads(list) {
   }
   // Which also repaints the legend, so the open zone's chip is lit by the same pass.
   syncProject()
+  // Normal colony scans stay conservative, but a governed SilverFlow mission is a live
+  // execution surface. Once one is observed running, poll quickly enough to make handoffs
+  // visible without requiring DevTools or a manual refresh; stop the extra timer at terminal state.
+  syncLiveMissionPolling()
 
   // Zones only move when their own footprint changes, and when one does the colony file
   // learns about it — so the map you built up a memory of survives a reload.
