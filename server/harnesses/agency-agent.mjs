@@ -147,6 +147,31 @@ function worktreeFor(task) {
   return workspace.workspace_id || ''
 }
 
+function compactExecution(record) {
+  const run = record?.execution
+  if (!run || typeof run !== 'object' || Array.isArray(run)) return null
+  const status = safeText(run.status, 24).toUpperCase()
+  if (!['RUNNING', 'SUCCEEDED', 'FAILED'].includes(status)) return null
+  return {
+    runId: safeText(run.run_id, 160),
+    status,
+    agentId: safeText(run.agent_id, 160),
+    agentName: safeText(run.agent_name, 128),
+    model: safeText(run.model, 160),
+    startedAt: safeText(run.started_at, 64),
+    completedAt: safeText(run.completed_at, 64),
+    summary: safeText(run.summary, 500),
+    errorKind: safeText(run.error_kind, 80),
+    steps: safeCount(run.steps),
+    toolCalls: safeCount(run.tool_calls),
+    inputTokens: safeCount(run.input_tokens),
+    outputTokens: safeCount(run.output_tokens),
+    artifacts: Array.isArray(run.artifacts)
+      ? run.artifacts.slice(0, 20).map((item) => safeText(item, 240)).filter(Boolean)
+      : [],
+  }
+}
+
 function compactGovernedRequest(record) {
   const requests = Array.isArray(record?.governed_requests) ? record.governed_requests : []
   const item = requests[0]
@@ -212,6 +237,7 @@ function compactOperational(record, task) {
           releaseReady: release.release_ready === true,
         }
       : null,
+    execution: compactExecution(record),
     governedRequest: compactGovernedRequest(record),
   }
 }
@@ -241,6 +267,16 @@ function encodeOperationalModel(ops, navigation = {}) {
     q: ops.governedRequest
       ? [ops.governedRequest.status, ops.governedRequest.action]
       : undefined,
+    u: ops.execution
+      ? [
+          ops.execution.status,
+          ops.execution.runId,
+          ops.execution.steps,
+          ops.execution.toolCalls,
+          ops.execution.errorKind,
+          ops.execution.model,
+        ]
+      : undefined,
     p: navigation.agentName
       ? [safeText(navigation.agentName, 128), safeText(navigation.agentId, 160)]
       : undefined,
@@ -267,8 +303,14 @@ function toThread(project, record, agentProfile = null, workspace = null) {
   const createdAt = epochMs(task.created_at)
   const taskUpdatedAt = epochMs(task.updated_at) || createdAt
   const activityAt = epochMs(ops?.activity.latestEventAt)
-  const updatedAt = Math.max(taskUpdatedAt, activityAt)
+  const executionAt = Math.max(
+    epochMs(ops?.execution?.startedAt),
+    epochMs(ops?.execution?.completedAt)
+  )
+  const updatedAt = Math.max(taskUpdatedAt, activityAt, executionAt)
   const status = task.status || 'BACKLOG'
+  const executionRunning = ops?.execution?.status === 'RUNNING'
+  const executionFailed = ops?.execution?.status === 'FAILED'
   const serializedSize = textBytes(JSON.stringify(record))
   const operatorTask = operatorTaskUrl(project.project_id, task.id)
   const threadId = `agency-agent:${project.project_id}:${task.id}`
@@ -297,9 +339,9 @@ function toThread(project, record, agentProfile = null, workspace = null) {
     createdAt,
     lastActivityAt: updatedAt,
     lastFocusedAt: 0,
-    running: ACTIVE_STATUSES.has(status),
+    running: !executionFailed && (ACTIVE_STATUSES.has(status) || executionRunning),
     unread: UNREAD_STATUSES.has(status),
-    hasError: ERROR_STATUSES.has(status),
+    hasError: ERROR_STATUSES.has(status) || executionFailed,
     starred: false,
     routine: false,
     archived: status === 'DONE',
@@ -326,15 +368,30 @@ function toAgentThread(project, profile, taskRecords = [], workspace = null) {
     return task?.owner_agent === agentName && task?.status !== 'DONE'
   })
   const ownedTasks = owned.map((record) => record?.task || record)
-  const running = ownedTasks.some((task) => ACTIVE_STATUSES.has(task.status || ''))
+  const running = owned.some((record) => {
+    const task = record?.task || record
+    const execution = compactOperational(record, task)?.execution
+    if (execution?.status === 'FAILED') return false
+    return ACTIVE_STATUSES.has(task.status || '') || execution?.status === 'RUNNING'
+  })
   const unread = ownedTasks.some((task) => UNREAD_STATUSES.has(task.status || ''))
-  const hasError = ownedTasks.some((task) => ERROR_STATUSES.has(task.status || ''))
+  const hasError = owned.some((record) => {
+    const task = record?.task || record
+    const execution = compactOperational(record, task)?.execution
+    return ERROR_STATUSES.has(task.status || '') || execution?.status === 'FAILED'
+  })
   const createdAt = epochMs(profile?.created_at)
   const profileUpdated = epochMs(profile?.updated_at) || createdAt
   const taskActivity = owned.reduce((latest, record) => {
     const task = record?.task || record
     const ops = compactOperational(record, task)
-    return Math.max(latest, epochMs(task?.updated_at), epochMs(ops?.activity.latestEventAt))
+    return Math.max(
+      latest,
+      epochMs(task?.updated_at),
+      epochMs(ops?.activity.latestEventAt),
+      epochMs(ops?.execution?.startedAt),
+      epochMs(ops?.execution?.completedAt)
+    )
   }, 0)
   const lastActivityAt = Math.max(profileUpdated, taskActivity)
   const threadId = `agency-agent-profile:${project.project_id}:${agentId}`
@@ -356,6 +413,7 @@ function toAgentThread(project, profile, taskRecords = [], workspace = null) {
     evaluator: null,
     silverguard: null,
     release: null,
+    execution: null,
     governedRequest: null,
   }
   const registryUrl = operatorAgentsUrl(project.project_id)
@@ -524,6 +582,7 @@ export default {
 export {
   GOVERNED_ACTIONS,
   OPS_MODEL_PREFIX,
+  compactExecution,
   compactOperational,
   compactWorkspace,
   encodeOperationalModel,
