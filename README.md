@@ -8,7 +8,7 @@ This repository is a fork of **[Station-Sciences/bot-crossing](https://github.co
 
 ## Status
 
-**Latest completed milestone: AW10 — Persistent Agent Registry & Operator Creation**
+**Latest completed milestone: AW11 — Agent Mission Topology**
 
 | Capability | Status |
 | --- | --- |
@@ -27,6 +27,7 @@ This repository is a fork of **[Station-Sciences/bot-crossing](https://github.co
 | Professional FR/EN Agency Agent Operator UX | ✅ AW9.1 |
 | Persistent Agent Registry + Operator agent creation | ✅ AW10 |
 | Persistent 3D astronaut per enabled AgentProfile | ✅ AW10 real-machine smoke |
+| AgentProfile → mission topology links | ✅ AW11 real-machine smoke |
 
 ## Product model
 
@@ -82,6 +83,21 @@ Operator navigation from profile                             ✅
 ```
 
 Creating an AgentProfile does **not** launch a model, run a tool, mutate a task or start an execution.
+
+## AW11 — agent mission topology
+
+AW11 makes mission ownership explicit in the 3D colony. Agency Agent task ownership is resolved against the AW10 Agent Registry, and Agent World carries the stable `agent_id` into normalized mission threads.
+
+When a task is owned by a registered AgentProfile:
+
+- the persistent agent identity is grouped beside its governed missions;
+- Agent World draws a read-only 3D connector from the persistent agent site to each linked mission site;
+- the task card shows `Mission · <agent>` in FR/EN;
+- the relation is derived from the authoritative AgentProfile identity rather than inferred from display text.
+
+Legacy tasks whose `owner_agent` cannot be resolved to a registered profile remain compatible and receive no invented topology link.
+
+Real-machine Windows smoke on the clean `F:\\SilverKen` installation validated `Tuce-Frontend`, the assigned AW10 mission, the stable `agent_id`, the `Mission · Tuce-Frontend` badge, and one live Three.js mission connector.
 
 ## Quick start — local launcher
 
@@ -196,17 +212,17 @@ npm test
 npm run build
 ```
 
-AW10 Agent World merged to `main` at:
+AW11 Agent World merged to `main` at:
 
 ```text
-8f12ad279353b6c1b5edc78a10a948e7133a7827
+a713d19cb7183a93fc4d0897fb447cfb4aca1354
 ```
 
 Post-merge quality gate:
 
 ```text
 runtime dependency audit ✅
-89 / 89 tests            ✅
+92 / 92 tests            ✅
 production build         ✅
 ```
 
@@ -235,6 +251,7 @@ AW8   Productization & local launcher         ✅
 AW9   Governed request inbox/lifecycle        ✅
 AW9.1 Operator UX + FR/EN                     ✅
 AW10  Persistent Agent Registry + 3D identity ✅
+AW11  Agent Mission Topology                  ✅
 ```
 
 ## Upstream relationship
