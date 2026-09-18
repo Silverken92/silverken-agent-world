@@ -327,7 +327,14 @@ test('AW15C projects live SilverFlow mission and specialist state without author
 
   const compactMission = compactOrchestration(mission)
   assert.equal(compactMission.status, 'RUNNING')
+  assert.equal(compactMission.teamSize, 3)
   assert.equal(compactMission.assignments.length, 3)
+  assert.equal(compactMission.assignments[1].agentId, 'agt-platform')
+
+  const compactMissionTwice = compactOrchestration(compactMission)
+  assert.deepEqual(compactMissionTwice, compactMission)
+  assert.equal(compactMissionTwice.teamSize, 3)
+  assert.equal(compactMissionTwice.assignments[1].agentId, 'agt-platform')
   const serializedMission = JSON.stringify(compactMission)
   assert.equal(serializedMission.includes('F:\\\\SilverKen'), false)
   assert.equal(serializedMission.includes('docs/**'), false)
