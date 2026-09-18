@@ -20,6 +20,8 @@ import { MAX_AGENT_CAP } from '../core/settings.js'
 import { Particles } from '../agents/particles.js'
 import { Navigation } from '../agents/navigation.js'
 import { liveThreadsForColony } from './hidden-projects.js'
+import { missionTopology, orderProjectThreads } from './mission-topology.js'
+import { MissionLinks } from '../world/mission-links.js'
 
 /**
  * The colony: everything that turns a list of agent threads into a place.
@@ -148,6 +150,7 @@ export class Colony {
     this.scaffolds = new Scaffolds(scene, 320)
     this.nav = new Navigation()
     this.astronauts.setNavigation(this.nav)
+    this.missionLinks = new MissionLinks(scene)
 
     this.plotGroup = new THREE.Group()
     this.labelGroup = new THREE.Group()
@@ -330,10 +333,11 @@ export class Colony {
     for (const [name, list] of projects) {
       const plot = this.plots.get(name)
       if (!plot) continue
-      // Oldest thread first, so a given session keeps its slot as siblings come and go.
-      list.sort((a, b) => a.createdAt - b.createdAt)
+      // AW11 keeps each persistent AgentProfile next to its explicitly assigned missions.
+      // Unregistered/legacy threads retain deterministic ordering and no inferred relation.
+      const ordered = orderProjectThreads(list)
 
-      list.forEach((thread, i) => {
+      ordered.forEach((thread, i) => {
         const status = statusFor(thread, now)
         if (stats[status] !== undefined) stats[status]++
         if (status === 'waiting' || status === 'blocked') urgent.add(plot.id)
@@ -363,6 +367,7 @@ export class Colony {
       if (!seenBuildings.has(id)) this._removeBuilding(id, entry)
     }
 
+    this.missionLinks.sync(missionTopology(live), this.buildings, this.plots)
     this.threads = new Map(live.map((t) => [t.id, t]))
     this.urgentPlots = urgent
     this.activePlots = active
@@ -871,6 +876,7 @@ export class Colony {
     this.indicators.dispose()
     this.particles.dispose()
     this.scaffolds.dispose()
+    this.missionLinks.dispose()
     disposeTree(this.worldGroup)
     disposeTree(this.plotGroup)
     disposeTree(this.labelGroup)

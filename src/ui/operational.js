@@ -146,7 +146,18 @@ export function operationalBadges(data, locale = 'en') {
   }
 
   if (data.m) add(String(data.m), 'model', fr ? 'Modèle d’exécution Agency Agent' : 'Agency Agent execution model')
-  if (data.o) add(`${t('owner', lang)} · ${String(data.o)}`, 'agent', fr ? 'Agent responsable de la tâche' : 'Task owner agent')
+  const missionAgent = Array.isArray(data.p) ? String(data.p[0] || '').trim() : ''
+  if (missionAgent) {
+    add(
+      `Mission · ${missionAgent}`,
+      'agent',
+      fr
+        ? 'Mission explicitement rattachée à cet agent persistant'
+        : 'Mission explicitly assigned to this persistent agent'
+    )
+  } else if (data.o) {
+    add(`${t('owner', lang)} · ${String(data.o)}`, 'agent', fr ? 'Agent responsable de la tâche' : 'Task owner agent')
+  }
   if (data.a && data.a !== data.o) add(`${t('live', lang)} · ${String(data.a)}`, 'agent', fr ? 'Dernière activité d’un agent' : 'Most recent agent activity')
 
   if (Array.isArray(data.v)) {
