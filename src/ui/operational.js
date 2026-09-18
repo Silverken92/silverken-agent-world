@@ -135,6 +135,31 @@ function githubBadges(data, locale) {
   return badges
 }
 
+
+function silverflowStatusLabel(status, locale = 'en') {
+  const value = String(status || '').toUpperCase()
+  const fr = normalizeLocale(locale) === 'fr'
+  const labels = {
+    PLANNED: fr ? 'PLANIFIÉE' : 'PLANNED',
+    READY: fr ? 'PRÊT' : 'READY',
+    WAITING: fr ? 'EN ATTENTE' : 'WAITING',
+    RUNNING: fr ? 'EN COURS' : 'RUNNING',
+    INTEGRATING: fr ? 'INTÉGRATION' : 'INTEGRATING',
+    COMPLETED: fr ? 'TERMINÉE' : 'COMPLETED',
+    BLOCKED: fr ? 'BLOQUÉE' : 'BLOCKED',
+    FAILED: fr ? 'ÉCHEC' : 'FAILED',
+  }
+  return labels[value] || value
+}
+
+function silverflowTone(status) {
+  const value = String(status || '').toUpperCase()
+  if (value === 'COMPLETED') return 'success'
+  if (value === 'FAILED' || value === 'BLOCKED') return 'danger'
+  if (value === 'RUNNING' || value === 'INTEGRATING') return 'pending'
+  return 'agent'
+}
+
 export function operationalBadges(data, locale = 'en') {
   if (!data || typeof data !== 'object') return []
   const lang = normalizeLocale(locale)
@@ -167,6 +192,50 @@ export function operationalBadges(data, locale = 'en') {
       add(`Workspace · ${repository}`, tone, detail)
     }
   }
+
+  if (Array.isArray(data.y) && data.y.length >= 8) {
+    const status = String(data.y[0] || '').toUpperCase()
+    const teamSize = Math.max(0, Number(data.y[2]) || 0)
+    const maxParallel = Math.max(0, Number(data.y[3]) || 0)
+    const completed = Math.max(0, Number(data.y[4]) || 0)
+    const active = Math.max(0, Number(data.y[5]) || 0)
+    const waiting = Math.max(0, Number(data.y[6]) || 0)
+    const failed = Math.max(0, Number(data.y[7]) || 0)
+    const handoffs = Math.max(0, Number(data.y[8]) || 0)
+    const artifacts = Math.max(0, Number(data.y[9]) || 0)
+    const detail = [
+      fr ? `Équipe · ${teamSize}` : `Team · ${teamSize}`,
+      fr ? `Actifs · ${active}` : `Active · ${active}`,
+      fr ? `Attente · ${waiting}` : `Waiting · ${waiting}`,
+      failed ? (fr ? `Échecs · ${failed}` : `Failed · ${failed}`) : '',
+      fr ? `Parallèle · ${maxParallel}` : `Parallel · ${maxParallel}`,
+      handoffs ? `Handoffs · ${handoffs}` : '',
+      artifacts ? (fr ? `Artefacts · ${artifacts}` : `Artifacts · ${artifacts}`) : '',
+    ].filter(Boolean).join(' · ')
+    add(
+      `Mission · ${silverflowStatusLabel(status, lang)} · ${completed}/${teamSize}`,
+      silverflowTone(status),
+      detail
+    )
+  }
+
+  if (Array.isArray(data.z) && data.z.length >= 4) {
+    const status = String(data.z[0] || '').toUpperCase()
+    const role = String(data.z[2] || '')
+    const dependencies = Math.max(0, Number(data.z[3]) || 0)
+    const artifacts = Math.max(0, Number(data.z[4]) || 0)
+    const detail = [
+      role ? `${fr ? 'Rôle' : 'Role'} · ${role}` : '',
+      dependencies ? `${fr ? 'Dépendances' : 'Dependencies'} · ${dependencies}` : '',
+      artifacts ? (fr ? `Artefacts · ${artifacts}` : `Artifacts · ${artifacts}`) : '',
+    ].filter(Boolean).join(' · ')
+    add(
+      `SilverFlow · ${silverflowStatusLabel(status, lang)}`,
+      silverflowTone(status),
+      detail
+    )
+  }
+
   if (Array.isArray(data.k) && data.k.length >= 4) {
     const read = data.k[0] === true
     const write = data.k[1] === true
