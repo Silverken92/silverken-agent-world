@@ -274,12 +274,37 @@ Agency Agent + Agent World quality gates green   ✅
 
 The live Agent World payload test returned `False` for a search of `F:\\SilverKen`, proving that the local absolute path stays outside the browser-facing projection.
 
-## After AW12
+## AW13 — Governed Execution Visualization 🚧
+
+Goal: make the colony reflect the durable execution lifecycle introduced by Agency Agent AW13 without giving Agent World execution authority.
+
+Current implementation:
+
+- Agency Agent snapshot v1.3 projects only the latest compact run per task;
+- idempotency keys, initiating user identity, local repository paths and execution authority are excluded;
+- Agent World normalizes RUNNING / SUCCEEDED / FAILED run state;
+- mission cards show `Run · EN COURS / RÉUSSIE / ÉCHEC` in FR/EN;
+- run id, model, steps and tool-call count are available as compact badge detail;
+- a RUNNING run activates both the mission and its persistent AgentProfile immediately;
+- a FAILED run stops active animation and surfaces an error even if the task state still lags behind;
+- Agent World remains read-only for execution: the Execute control exists only in Operator.
+
+Exit criteria:
+
+```text
+Agency Agent snapshot v1.3 run projection       ⏳
+run authority/private fields excluded            ⏳
+RUNNING mission + AgentProfile animation         ⏳
+SUCCEEDED/FAILED badges                          ⏳
+Agent World quality gate green                   ⏳
+real Windows preflight/run smoke                 ⏳
+```
+
+## After AW13
 
 Candidate future work, not pre-approved:
 
 - agent templates/presets and richer capability policy authoring;
-- explicit execution controls and run lifecycle only through separate ADR/RBAC/idempotency work;
 - optional desktop packaging / tray launcher;
 - richer evidence/log navigation;
 - upstream Bot Crossing sync automation;
