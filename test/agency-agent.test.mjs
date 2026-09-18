@@ -2,6 +2,7 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 
 import agencyAgent, {
+  compactCapabilities,
   compactExecution,
   compactWorkspace,
   toAgentThread,
@@ -256,6 +257,66 @@ test('AW13 failed execution stops the active animation and surfaces an error', (
   )
 })
 
+test('AW14B capability projection is descriptive and strips raw authority', () => {
+  const profile = {
+    agent_id: 'agt-platform',
+    name: 'Platform-Engineer',
+    role: 'PLATFORM_ENGINEER',
+    description: 'Governed platform engineer',
+    enabled: true,
+    capabilities: {
+      read: true,
+      write: true,
+      commands: false,
+      policy_valid: true,
+      tool_count: 5,
+    },
+    tools_allowed: ['list_files', 'read_file', 'write_file', 'run_command'],
+    allowed_commands: ['pnpm test'],
+    allowed_changes: ['docs/**'],
+    repository_path: 'F:\\SilverKen\\projects\\silverken-platform',
+    created_at: '2026-09-18T11:00:00Z',
+    updated_at: '2026-09-18T11:00:00Z',
+  }
+
+  assert.deepEqual(compactCapabilities(profile), {
+    read: true,
+    write: true,
+    commands: false,
+    policyValid: true,
+    toolCount: 5,
+  })
+
+  const thread = toAgentThread(project, profile, [])
+  assert.deepEqual(thread.ref.capabilities, {
+    read: true,
+    write: true,
+    commands: false,
+    policyValid: true,
+    toolCount: 5,
+  })
+  const serialized = JSON.stringify(thread)
+  assert.equal(serialized.includes('pnpm test'), false)
+  assert.equal(serialized.includes('docs/**'), false)
+  assert.equal(serialized.includes('F:\\\\SilverKen'), false)
+  assert.equal(serialized.includes('tools_allowed'), false)
+  assert.equal(serialized.includes('allowed_commands'), false)
+  assert.equal(serialized.includes('allowed_changes'), false)
+
+  const decoded = decodeOperationalModel(thread.model)
+  assert.deepEqual(decoded.k, [true, true, false, true, 5])
+  assert.ok(
+    operationalBadges(decoded, 'fr').some(
+      (badge) => badge.label === 'Capacités · L✓ É✓ Cmd—' && badge.tone === 'agent'
+    )
+  )
+  assert.ok(
+    operationalBadges(decoded, 'en').some(
+      (badge) => badge.label === 'Capabilities · R✓ W✓ Cmd—' && badge.tone === 'agent'
+    )
+  )
+})
+
 test('AW12 workspace projection stays compact and excludes local paths', () => {
   const workspace = {
     bound: true,
@@ -344,7 +405,7 @@ test('Agency Agent live scan consumes one bounded operational snapshot per proje
     if (String(url).endsWith('/api/v1/projects')) return jsonResponse([project])
     if (String(url).endsWith('/api/v1/projects/proj-1/agent-world')) {
       return jsonResponse({
-        schema_version: '1.3',
+        schema_version: '1.4',
         project,
         workspace: {
           bound: true,
