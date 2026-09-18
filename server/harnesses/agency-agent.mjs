@@ -186,17 +186,17 @@ function compactAssignment(value) {
   const status = safeText(value.status, 24).toUpperCase()
   if (!ASSIGNMENT_STATUSES.has(status)) return null
   return {
-    assignmentId: safeText(value.assignment_id, 160),
-    agentId: safeText(value.agent_id, 160),
-    agentName: safeText(value.agent_name, 128),
+    assignmentId: safeText(value.assignment_id ?? value.assignmentId, 160),
+    agentId: safeText(value.agent_id ?? value.agentId, 160),
+    agentName: safeText(value.agent_name ?? value.agentName, 128),
     role: safeText(value.role, 80),
     status,
     dependencies: Array.isArray(value.dependencies)
       ? value.dependencies.slice(0, 6).map((item) => safeText(item, 160)).filter(Boolean)
       : [],
-    childTaskId: safeText(value.child_task_id, 160),
-    childStatus: safeText(value.child_status, 48),
-    artifactCount: safeCount(value.artifact_count),
+    childTaskId: safeText(value.child_task_id ?? value.childTaskId, 160),
+    childStatus: safeText(value.child_status ?? value.childStatus, 48),
+    artifactCount: safeCount(value.artifact_count ?? value.artifactCount),
   }
 }
 
@@ -208,15 +208,17 @@ function compactOrchestration(value) {
     ? value.assignments.map(compactAssignment).filter(Boolean).slice(0, 6)
     : []
   return {
-    orchestrationId: safeText(value.orchestration_id, 160),
-    parentTaskId: safeText(value.parent_task_id, 160),
+    orchestrationId: safeText(value.orchestration_id ?? value.orchestrationId, 160),
+    parentTaskId: safeText(value.parent_task_id ?? value.parentTaskId, 160),
     status,
-    teamSize: safeCount(value.team_size),
-    maxParallel: safeCount(value.max_parallel),
-    startedAt: safeText(value.started_at, 64),
-    completedAt: safeText(value.completed_at, 64),
-    integratedArtifactCount: safeCount(value.integrated_artifact_count),
-    handoffCount: safeCount(value.handoff_count),
+    teamSize: safeCount(value.team_size ?? value.teamSize),
+    maxParallel: safeCount(value.max_parallel ?? value.maxParallel),
+    startedAt: safeText(value.started_at ?? value.startedAt, 64),
+    completedAt: safeText(value.completed_at ?? value.completedAt, 64),
+    integratedArtifactCount: safeCount(
+      value.integrated_artifact_count ?? value.integratedArtifactCount
+    ),
+    handoffCount: safeCount(value.handoff_count ?? value.handoffCount),
     blocked: value.blocked === true,
     assignments,
   }
