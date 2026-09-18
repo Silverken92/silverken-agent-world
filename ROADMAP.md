@@ -274,11 +274,11 @@ Agency Agent + Agent World quality gates green   ✅
 
 The live Agent World payload test returned `False` for a search of `F:\\SilverKen`, proving that the local absolute path stays outside the browser-facing projection.
 
-## AW13 — Governed Execution Visualization 🚧
+## AW13 — Governed Execution Visualization ✅
 
 Goal: make the colony reflect the durable execution lifecycle introduced by Agency Agent AW13 without giving Agent World execution authority.
 
-Current implementation:
+Completed implementation:
 
 - Agency Agent snapshot v1.3 projects only the latest compact run per task;
 - idempotency keys, initiating user identity, local repository paths and execution authority are excluded;
@@ -292,13 +292,32 @@ Current implementation:
 Exit criteria:
 
 ```text
-Agency Agent snapshot v1.3 run projection       ⏳
-run authority/private fields excluded            ⏳
-RUNNING mission + AgentProfile animation         ⏳
-SUCCEEDED/FAILED badges                          ⏳
-Agent World quality gate green                   ⏳
-real Windows preflight/run smoke                 ⏳
+Agency Agent snapshot v1.3 run projection       ✅
+run authority/private fields excluded            ✅
+RUNNING mission + AgentProfile animation         ✅
+SUCCEEDED/FAILED badges                          ✅
+Agent World quality gate green                   ✅
+real Windows preflight/run smoke                 ✅
 ```
+
+Real-machine Windows evidence:
+
+```text
+Agency Agent DB revision: 0004_execution_control                  ✅
+Provider/model visibility in runtime doctor                       ✅
+Workspace: silverken-platform / main / clean before execution      ✅
+AgentProfile: SilverKen-Platform-Engineer                          ✅
+Task: LOW / SINGLE_AGENT / bounded docs/AW13_SMOKE.md write scope ✅
+Operator governed preflight                                       ✅
+Agent World: Run · EN COURS                                       ✅
+mission + persistent AgentProfile active during RUNNING            ✅
+Operator audit: execution.completed / SUCCESS / artifact_count=1   ✅
+Task terminal state: IMPLEMENTED                                   ✅
+Artifact contents: AW13 governed execution smoke                   ✅
+Agent World: Run · RÉUSSIE                                        ✅
+```
+
+AW13 therefore meets its exit criteria: execution remains an explicit Agency Agent Operator authority while Agent World reflects durable run lifecycle state through the compact v1.3 projection.
 
 ## After AW13
 
