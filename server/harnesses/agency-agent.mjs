@@ -339,7 +339,7 @@ function toThread(project, record, agentProfile = null, workspace = null) {
     createdAt,
     lastActivityAt: updatedAt,
     lastFocusedAt: 0,
-    running: ACTIVE_STATUSES.has(status) || executionRunning,
+    running: !executionFailed && (ACTIVE_STATUSES.has(status) || executionRunning),
     unread: UNREAD_STATUSES.has(status),
     hasError: ERROR_STATUSES.has(status) || executionFailed,
     starred: false,
@@ -371,6 +371,7 @@ function toAgentThread(project, profile, taskRecords = [], workspace = null) {
   const running = owned.some((record) => {
     const task = record?.task || record
     const execution = compactOperational(record, task)?.execution
+    if (execution?.status === 'FAILED') return false
     return ACTIVE_STATUSES.has(task.status || '') || execution?.status === 'RUNNING'
   })
   const unread = ownedTasks.some((task) => UNREAD_STATUSES.has(task.status || ''))
