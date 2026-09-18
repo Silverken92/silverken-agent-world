@@ -167,6 +167,33 @@ export function operationalBadges(data, locale = 'en') {
       add(`Workspace · ${repository}`, tone, detail)
     }
   }
+  if (Array.isArray(data.u) && data.u.length >= 2) {
+    const runStatus = String(data.u[0] || '').toUpperCase()
+    const runId = String(data.u[1] || '').trim()
+    const steps = Math.max(0, Number(data.u[2]) || 0)
+    const toolCalls = Math.max(0, Number(data.u[3]) || 0)
+    const errorKind = String(data.u[4] || '').trim()
+    const runModel = String(data.u[5] || '').trim()
+    const labels = fr
+      ? { RUNNING: 'EN COURS', SUCCEEDED: 'RÉUSSIE', FAILED: 'ÉCHEC' }
+      : { RUNNING: 'RUNNING', SUCCEEDED: 'SUCCEEDED', FAILED: 'FAILED' }
+    const tone = runStatus === 'FAILED'
+      ? 'danger'
+      : runStatus === 'SUCCEEDED'
+        ? 'success'
+        : 'pending'
+    const detail = [
+      runId ? `Run · ${runId}` : '',
+      runModel ? `Model · ${runModel}` : '',
+      steps ? `${fr ? 'Étapes' : 'Steps'} · ${steps}` : '',
+      toolCalls ? `Tools · ${toolCalls}` : '',
+      errorKind ? `Error · ${errorKind}` : '',
+    ].filter(Boolean).join(' · ')
+    if (labels[runStatus]) {
+      add(`Run · ${labels[runStatus]}`, tone, detail)
+    }
+  }
+
   const missionAgent = Array.isArray(data.p) ? String(data.p[0] || '').trim() : ''
   if (missionAgent) {
     add(
