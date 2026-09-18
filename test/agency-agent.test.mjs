@@ -1,7 +1,12 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 
-import agencyAgent, { compactWorkspace, toThread } from '../server/harnesses/agency-agent.mjs'
+import agencyAgent, {
+  compactExecution,
+  compactWorkspace,
+  toAgentThread,
+  toThread,
+} from '../server/harnesses/agency-agent.mjs'
 import { decodeOperationalModel, operationalBadges } from '../src/ui/operational.js'
 
 const project = {
@@ -147,6 +152,110 @@ test('Agency Agent operational snapshot stays compact and does not fake PR merge
 })
 
 
+
+test('AW13 execution projection drives live state without leaking execution authority', () => {
+  const record = snapshotRecord('BACKLOG')
+  record.execution = {
+    run_id: 'run-aw13',
+    status: 'RUNNING',
+    agent_id: 'agt-platform',
+    agent_name: 'Platform-Engineer',
+    model: 'gpt-test',
+    started_at: '2026-09-18T12:00:00Z',
+    completed_at: null,
+    summary: '',
+    error_kind: null,
+    steps: 1,
+    tool_calls: 2,
+    input_tokens: 10,
+    output_tokens: 5,
+    artifacts: [],
+    idempotency_key: 'secret-key',
+    started_by: 'usr-private',
+    repository_path: 'F:\\SilverKen\\projects\\silverken-platform',
+  }
+
+  assert.deepEqual(compactExecution(record), {
+    runId: 'run-aw13',
+    status: 'RUNNING',
+    agentId: 'agt-platform',
+    agentName: 'Platform-Engineer',
+    model: 'gpt-test',
+    startedAt: '2026-09-18T12:00:00Z',
+    completedAt: '',
+    summary: '',
+    errorKind: '',
+    steps: 1,
+    toolCalls: 2,
+    inputTokens: 10,
+    outputTokens: 5,
+    artifacts: [],
+  })
+
+  const profile = {
+    agent_id: 'agt-platform',
+    name: 'Platform-Engineer',
+    role: 'PLATFORM_ENGINEER',
+    description: 'Governed platform engineer',
+    enabled: true,
+    created_at: '2026-09-18T11:00:00Z',
+    updated_at: '2026-09-18T11:00:00Z',
+  }
+  record.task.owner_agent = 'Platform-Engineer'
+  const taskThread = toThread(project, record, profile)
+  const agentThread = toAgentThread(project, profile, [record])
+
+  assert.equal(taskThread.running, true)
+  assert.equal(agentThread.running, true)
+  assert.equal(taskThread.hasError, false)
+  assert.equal(JSON.stringify(taskThread).includes('secret-key'), false)
+  assert.equal(JSON.stringify(taskThread).includes('usr-private'), false)
+  assert.equal(JSON.stringify(taskThread).includes('F:\\\\SilverKen'), false)
+
+  const decoded = decodeOperationalModel(taskThread.model)
+  assert.deepEqual(decoded.u, ['RUNNING', 'run-aw13', 1, 2, '', 'gpt-test'])
+  assert.ok(
+    operationalBadges(decoded, 'fr').some(
+      (badge) => badge.label === 'Run · EN COURS' && badge.tone === 'pending'
+    )
+  )
+})
+
+test('AW13 failed execution stops the active animation and surfaces an error', () => {
+  const record = snapshotRecord('IN_PROGRESS')
+  record.execution = {
+    run_id: 'run-failed',
+    status: 'FAILED',
+    agent_id: 'agt-platform',
+    agent_name: 'Platform-Engineer',
+    model: 'gpt-test',
+    started_at: '2026-09-18T12:00:00Z',
+    completed_at: '2026-09-18T12:01:00Z',
+    error_kind: 'PROVIDER',
+  }
+  const profile = {
+    agent_id: 'agt-platform',
+    name: 'Platform-Engineer',
+    role: 'PLATFORM_ENGINEER',
+    enabled: true,
+    created_at: '2026-09-18T11:00:00Z',
+    updated_at: '2026-09-18T11:00:00Z',
+  }
+  record.task.owner_agent = 'Platform-Engineer'
+
+  const taskThread = toThread(project, record, profile)
+  const agentThread = toAgentThread(project, profile, [record])
+  assert.equal(taskThread.running, false)
+  assert.equal(taskThread.hasError, true)
+  assert.equal(agentThread.running, false)
+  assert.equal(agentThread.hasError, true)
+  assert.ok(
+    operationalBadges(decodeOperationalModel(taskThread.model), 'en').some(
+      (badge) => badge.label === 'Run · FAILED' && badge.tone === 'danger'
+    )
+  )
+})
+
 test('AW12 workspace projection stays compact and excludes local paths', () => {
   const workspace = {
     bound: true,
@@ -235,7 +344,7 @@ test('Agency Agent live scan consumes one bounded operational snapshot per proje
     if (String(url).endsWith('/api/v1/projects')) return jsonResponse([project])
     if (String(url).endsWith('/api/v1/projects/proj-1/agent-world')) {
       return jsonResponse({
-        schema_version: '1.2',
+        schema_version: '1.3',
         project,
         workspace: {
           bound: true,
