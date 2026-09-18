@@ -471,11 +471,11 @@ function toThread(project, record, agentProfile = null, workspace = null, orches
     createdAt,
     lastActivityAt: updatedAt,
     lastFocusedAt: 0,
-    running: !executionFailed && !missionFailed && (
-      ACTIVE_STATUSES.has(status) || executionRunning || missionRunning
-    ),
-    unread: UNREAD_STATUSES.has(status) || mission?.status === 'BLOCKED',
-    hasError: ERROR_STATUSES.has(status) || executionFailed || missionFailed,
+    running: mission
+      ? missionRunning
+      : !executionFailed && (ACTIVE_STATUSES.has(status) || executionRunning),
+    unread: mission ? mission.status === 'BLOCKED' : UNREAD_STATUSES.has(status),
+    hasError: mission ? missionFailed : ERROR_STATUSES.has(status) || executionFailed,
     starred: false,
     routine: false,
     archived: status === 'DONE',
@@ -569,7 +569,7 @@ function toAgentThread(project, profile, taskRecords = [], workspace = null, orc
     missionAssignments.find(({ assignment }) => assignment.status === 'RUNNING')
     || missionAssignments.find(({ assignment }) => ['FAILED', 'BLOCKED'].includes(assignment.status))
     || missionAssignments.find(({ assignment }) => ['READY', 'WAITING'].includes(assignment.status))
-    || missionAssignments.at(-1)
+    || missionAssignments[0]
     || null
   const silverflowRunning = activeMissionAssignment?.assignment.status === 'RUNNING'
   const silverflowFailed = ['FAILED', 'BLOCKED'].includes(
