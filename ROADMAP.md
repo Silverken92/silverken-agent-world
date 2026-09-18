@@ -210,11 +210,11 @@ role: FRONTEND                                                  ✅
 
 AW10 therefore meets its real-machine exit criteria: an agent can be created in Operator, assigned governed work, and exist as a persistent 3D identity without an implicit execution side effect.
 
-## AW11 — Agent Mission Topology 🚧
+## AW11 — Agent Mission Topology ✅
 
 Goal: make the 3D colony explain who owns each governed mission by linking task/mission objects to the persistent AgentProfile that Agency Agent assigned.
 
-Current implementation on the AW11 branch:
+Completed implementation:
 
 - mission threads resolve their registered AgentProfile through the AW10 snapshot;
 - the normalized relation carries the stable `agent_id` plus display name;
@@ -224,16 +224,28 @@ Current implementation on the AW11 branch:
 - legacy tasks without a resolvable AgentProfile remain unchanged and receive no inferred link;
 - no task state, assignment, AgentProfile or source system is mutated by topology rendering.
 
-Exit criteria before AW11 is marked complete:
+Real-machine Windows smoke from the clean `F:\\SilverKen` installation:
 
 ```text
-explicit agent_id relation in /api/threads        ⏳
-persistent agent beside assigned mission          ⏳
-visible 3D agent → mission connector               ⏳
-FR/EN mission ownership badge                      ⏳
-unregistered legacy mission remains compatible     ⏳
-real Windows smoke with Tuce-Frontend              ⏳
+explicit agent_id relation in /api/threads        ✅
+persistent agent beside assigned mission          ✅
+3D missionLinks renderer created 1 connector       ✅
+FR/EN mission ownership badge                      ✅
+unregistered legacy mission remains compatible     ✅
+Tuce-Frontend / Smoke AW10 topology                 ✅
 ```
+
+Observed stable relation:
+
+```text
+agentId    : agt_602488cb41d8471f8939b7e54a75fe84
+agentName  : Tuce-Frontend
+ownerAgent : Tuce-Frontend
+```
+
+Browser runtime proof reported `missionLinks.group.children.length === 1`, confirming that the Three.js topology layer created the agent → mission connector in the live scene.
+
+AW11 therefore meets its exit criteria: Agent World now visualizes explicit, stable AgentProfile ownership of governed missions without inventing links for legacy free-form task owners or changing the Agency Agent authority boundary.
 
 ## After AW11
 
