@@ -167,6 +167,26 @@ export function operationalBadges(data, locale = 'en') {
       add(`Workspace · ${repository}`, tone, detail)
     }
   }
+  if (Array.isArray(data.k) && data.k.length >= 4) {
+    const read = data.k[0] === true
+    const write = data.k[1] === true
+    const commands = data.k[2] === true
+    const policyValid = data.k[3] !== false
+    const toolCount = Math.max(0, Number(data.k[4]) || 0)
+    const check = (value) => value ? '✓' : '—'
+    const label = fr
+      ? `Capacités · L${check(read)} É${check(write)} Cmd${check(commands)}`
+      : `Capabilities · R${check(read)} W${check(write)} Cmd${check(commands)}`
+    const detail = [
+      fr ? `Lecture · ${read ? 'Oui' : 'Non'}` : `Read · ${read ? 'Yes' : 'No'}`,
+      fr ? `Écriture effective · ${write ? 'Oui' : 'Non'}` : `Effective write · ${write ? 'Yes' : 'No'}`,
+      fr ? `Commandes effectives · ${commands ? 'Oui' : 'Non'}` : `Effective commands · ${commands ? 'Yes' : 'No'}`,
+      toolCount ? `${fr ? 'Outils' : 'Tools'} · ${toolCount}` : '',
+      fr ? `Politique · ${policyValid ? 'valide' : 'à corriger'}` : `Policy · ${policyValid ? 'valid' : 'needs changes'}`,
+    ].filter(Boolean).join(' · ')
+    add(label, policyValid ? 'agent' : 'danger', detail)
+  }
+
   if (Array.isArray(data.u) && data.u.length >= 2) {
     const runStatus = String(data.u[0] || '').toUpperCase()
     const runId = String(data.u[1] || '').trim()

@@ -147,6 +147,20 @@ function worktreeFor(task) {
   return workspace.workspace_id || ''
 }
 
+function compactCapabilities(profile) {
+  const value = profile?.capabilities
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    return { read: false, write: false, commands: false, policyValid: true, toolCount: 0 }
+  }
+  return {
+    read: value.read === true,
+    write: value.write === true,
+    commands: value.commands === true,
+    policyValid: value.policy_valid !== false,
+    toolCount: safeCount(value.tool_count),
+  }
+}
+
 function compactExecution(record) {
   const run = record?.execution
   if (!run || typeof run !== 'object' || Array.isArray(run)) return null
@@ -289,6 +303,15 @@ function encodeOperationalModel(ops, navigation = {}) {
           safeText(navigation.workspace.head, 64),
         ]
       : undefined,
+    k: navigation.capabilities
+      ? [
+          navigation.capabilities.read === true,
+          navigation.capabilities.write === true,
+          navigation.capabilities.commands === true,
+          navigation.capabilities.policyValid !== false,
+          safeCount(navigation.capabilities.toolCount),
+        ]
+      : undefined,
     t: ops.activity.tokenUsage,
     c: ops.activity.costByCurrency,
     x: Object.keys(extension).length ? extension : undefined,
@@ -418,6 +441,7 @@ function toAgentThread(project, profile, taskRecords = [], workspace = null) {
   }
   const registryUrl = operatorAgentsUrl(project.project_id)
   const workspaceInfo = compactWorkspace(workspace)
+  const capabilities = compactCapabilities(profile)
 
   return {
     id: threadId,
@@ -433,6 +457,7 @@ function toAgentThread(project, profile, taskRecords = [], workspace = null) {
       threadId,
       status: profile?.enabled === false ? 'DISABLED' : 'REGISTERED',
       workspace: workspaceInfo,
+      capabilities,
     }),
     effort: '',
     createdAt,
@@ -454,6 +479,7 @@ function toAgentThread(project, profile, taskRecords = [], workspace = null) {
       agentName,
       role,
       profile: true,
+      capabilities,
       ...(workspaceInfo?.bound ? { workspace: workspaceInfo } : {}),
     },
   }
@@ -582,6 +608,7 @@ export default {
 export {
   GOVERNED_ACTIONS,
   OPS_MODEL_PREFIX,
+  compactCapabilities,
   compactExecution,
   compactOperational,
   compactWorkspace,

@@ -18,8 +18,13 @@ function profile(overrides = {}) {
     description: 'Build governed user interfaces',
     model: 'fixture-model',
     enabled: true,
-    tools_allowed: ['read_file', 'write_file'],
-    allowed_changes: ['src/frontend/**'],
+    capabilities: {
+      read: true,
+      write: true,
+      commands: false,
+      policy_valid: true,
+      tool_count: 2,
+    },
     created_at: '2026-09-09T19:00:00Z',
     updated_at: '2026-09-09T19:05:00Z',
     ...overrides,
@@ -67,7 +72,21 @@ test('persistent Agency Agent profile becomes an idle registered astronaut', () 
   assert.equal(thread.archived, false)
   assert.equal(thread.operational.ownerAgent, 'Frontend-01')
   assert.equal(thread.operational.executionModel, 'AGENT · FRONTEND')
-  assert.deepEqual(Object.keys(thread.ref).sort(), ['agentId', 'agentName', 'profile', 'projectId', 'role'])
+  assert.deepEqual(Object.keys(thread.ref).sort(), [
+    'agentId',
+    'agentName',
+    'capabilities',
+    'profile',
+    'projectId',
+    'role',
+  ])
+  assert.deepEqual(thread.ref.capabilities, {
+    read: true,
+    write: true,
+    commands: false,
+    policyValid: true,
+    toolCount: 2,
+  })
 })
 
 test('persistent profile reflects owned mission health without becoming that mission', () => {
