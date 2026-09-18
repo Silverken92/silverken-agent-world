@@ -247,11 +247,11 @@ Browser runtime proof reported `missionLinks.group.children.length === 1`, confi
 
 AW11 therefore meets its exit criteria: Agent World now visualizes explicit, stable AgentProfile ownership of governed missions without inventing links for legacy free-form task owners or changing the Agency Agent authority boundary.
 
-## AW12 — Project Workspace Binding 🚧
+## AW12 — Project Workspace Binding ✅
 
 Goal: give each Agency Agent project one authoritative local Git repository binding before any future governed execution can target real code.
 
-Current implementation:
+Completed implementation:
 
 - Agency Agent owns the durable workspace binding and validates the exact Git root;
 - full absolute paths remain Operator-session-only;
@@ -260,16 +260,19 @@ Current implementation:
 - task and persistent-agent cards show a `Workspace · <repository>` operational badge;
 - workspace status remains descriptive: Agent World still cannot bind a repo or launch execution.
 
-Exit criteria:
+Real-machine Windows smoke:
 
 ```text
-Agency Agent migration 0003 + RBAC/API          ⏳
-Operator binds a real F:\\SilverKen repo       ⏳
-Agent World receives no absolute local path      ⏳
-Workspace badge shows repository + branch state  ⏳
-Agency Agent + Agent World quality gates green   ⏳
-real Windows smoke                               ⏳
+Agency Agent migration 0003 + RBAC/API          ✅
+Operator binding: silverken-platform             ✅
+Git root: F:\\SilverKen\\projects\\silverken-platform ✅
+Agent World receives no absolute local path      ✅
+Workspace · silverken-platform badge             ✅
+AgentProfile visible in 3D colony                ✅
+Agency Agent + Agent World quality gates green   ✅
 ```
+
+The live Agent World payload test returned `False` for a search of `F:\\SilverKen`, proving that the local absolute path stays outside the browser-facing projection.
 
 ## After AW12
 

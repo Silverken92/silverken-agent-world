@@ -8,7 +8,7 @@ This repository is a fork of **[Station-Sciences/bot-crossing](https://github.co
 
 ## Status
 
-**Latest completed milestone: AW11 — Agent Mission Topology**
+**Latest completed milestone: AW12 — Project Workspace Binding**
 
 | Capability | Status |
 | --- | --- |
@@ -28,6 +28,8 @@ This repository is a fork of **[Station-Sciences/bot-crossing](https://github.co
 | Persistent Agent Registry + Operator agent creation | ✅ AW10 |
 | Persistent 3D astronaut per enabled AgentProfile | ✅ AW10 real-machine smoke |
 | AgentProfile → mission topology links | ✅ AW11 real-machine smoke |
+| Project → validated local Git workspace binding | ✅ AW12 real-machine smoke |
+| Path-free workspace status in Agent World | ✅ AW12 |
 
 ## Product model
 
@@ -98,6 +100,24 @@ When a task is owned by a registered AgentProfile:
 Legacy tasks whose `owner_agent` cannot be resolved to a registered profile remain compatible and receive no invented topology link.
 
 Real-machine Windows smoke on the clean `F:\\SilverKen` installation validated `Tuce-Frontend`, the assigned AW10 mission, the stable `agent_id`, the `Mission · Tuce-Frontend` badge, and one live Three.js mission connector.
+
+## AW12 — project workspace binding
+
+AW12 gives each Agency Agent project one optional authoritative local Git repository binding. Operator validates the exact Git root and keeps the absolute local path session-only. Agent World receives only a compact projection: repository basename, branch, HEAD, clean/dirty and valid/bound state.
+
+Real-machine Windows validation used:
+
+```text
+F:\\SilverKen\\projects\\silverken-platform
+```
+
+with `SilverKen-Platform-Engineer` visible in the colony and the badge:
+
+```text
+Workspace · silverken-platform
+```
+
+A direct payload check confirmed that `F:\\SilverKen` is absent from Agent World data.
 
 ## Quick start — local launcher
 
@@ -212,19 +232,27 @@ npm test
 npm run build
 ```
 
-AW11 Agent World merged to `main` at:
+AW12 Agent World merged to `main` at:
 
 ```text
-a713d19cb7183a93fc4d0897fb447cfb4aca1354
+d95c822722bb8286d9ec172aead23a0aaaf65610
 ```
 
 Post-merge quality gate:
 
 ```text
 runtime dependency audit ✅
-92 / 92 tests            ✅
+tests                    ✅
 production build         ✅
 ```
+
+Agency Agent AW12 merged to `main` at:
+
+```text
+f13d5574877316b6ebbd19c52ab585d6bea98239
+```
+
+Its Repository Quality, PostgreSQL migration/backup/restore and production-container smokes are green.
 
 Agency Agent AW10 merged to its `main` at:
 
@@ -252,6 +280,7 @@ AW9   Governed request inbox/lifecycle        ✅
 AW9.1 Operator UX + FR/EN                     ✅
 AW10  Persistent Agent Registry + 3D identity ✅
 AW11  Agent Mission Topology                  ✅
+AW12  Project Workspace Binding                ✅
 ```
 
 ## Upstream relationship
