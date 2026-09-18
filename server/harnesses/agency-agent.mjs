@@ -563,8 +563,8 @@ function toAgentThread(project, profile, taskRecords = [], workspace = null, orc
     )
   const activeMissionAssignment =
     missionAssignments.find(({ assignment }) => assignment.status === 'RUNNING')
-    || missionAssignments.find(({ assignment }) => ['READY', 'WAITING'].includes(assignment.status))
     || missionAssignments.find(({ assignment }) => ['FAILED', 'BLOCKED'].includes(assignment.status))
+    || missionAssignments.find(({ assignment }) => ['READY', 'WAITING'].includes(assignment.status))
     || missionAssignments.at(-1)
     || null
   const silverflowRunning = activeMissionAssignment?.assignment.status === 'RUNNING'
@@ -594,9 +594,9 @@ function toAgentThread(project, profile, taskRecords = [], workspace = null, orc
     createdAt,
     lastActivityAt,
     lastFocusedAt: 0,
-    running: running || silverflowRunning,
+    running: activeMissionAssignment ? silverflowRunning : running,
     unread,
-    hasError: hasError || silverflowFailed,
+    hasError: activeMissionAssignment ? silverflowFailed : hasError,
     starred: false,
     routine: false,
     archived: profile?.enabled === false,
