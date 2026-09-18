@@ -161,6 +161,83 @@ function compactCapabilities(profile) {
   }
 }
 
+
+const ORCHESTRATION_STATUSES = new Set([
+  'PLANNED',
+  'RUNNING',
+  'INTEGRATING',
+  'COMPLETED',
+  'BLOCKED',
+  'FAILED',
+])
+
+const ASSIGNMENT_STATUSES = new Set([
+  'PLANNED',
+  'READY',
+  'WAITING',
+  'RUNNING',
+  'COMPLETED',
+  'BLOCKED',
+  'FAILED',
+])
+
+function compactAssignment(value) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return null
+  const status = safeText(value.status, 24).toUpperCase()
+  if (!ASSIGNMENT_STATUSES.has(status)) return null
+  return {
+    assignmentId: safeText(value.assignment_id ?? value.assignmentId, 160),
+    agentId: safeText(value.agent_id ?? value.agentId, 160),
+    agentName: safeText(value.agent_name ?? value.agentName, 128),
+    role: safeText(value.role, 80),
+    status,
+    dependencies: Array.isArray(value.dependencies)
+      ? value.dependencies.slice(0, 6).map((item) => safeText(item, 160)).filter(Boolean)
+      : [],
+    childTaskId: safeText(value.child_task_id ?? value.childTaskId, 160),
+    childStatus: safeText(value.child_status ?? value.childStatus, 48),
+    artifactCount: safeCount(value.artifact_count ?? value.artifactCount),
+  }
+}
+
+function compactOrchestration(value) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return null
+  const status = safeText(value.status, 24).toUpperCase()
+  if (!ORCHESTRATION_STATUSES.has(status)) return null
+  const assignments = Array.isArray(value.assignments)
+    ? value.assignments.map(compactAssignment).filter(Boolean).slice(0, 6)
+    : []
+  return {
+    orchestrationId: safeText(value.orchestration_id ?? value.orchestrationId, 160),
+    parentTaskId: safeText(value.parent_task_id ?? value.parentTaskId, 160),
+    status,
+    teamSize: safeCount(value.team_size ?? value.teamSize),
+    maxParallel: safeCount(value.max_parallel ?? value.maxParallel),
+    startedAt: safeText(value.started_at ?? value.startedAt, 64),
+    completedAt: safeText(value.completed_at ?? value.completedAt, 64),
+    integratedArtifactCount: safeCount(
+      value.integrated_artifact_count ?? value.integratedArtifactCount
+    ),
+    handoffCount: safeCount(value.handoff_count ?? value.handoffCount),
+    blocked: value.blocked === true,
+    assignments,
+  }
+}
+
+function orchestrationCounts(mission) {
+  const assignments = mission?.assignments || []
+  return {
+    completed: assignments.filter((item) => item.status === 'COMPLETED').length,
+    active: assignments.filter((item) => item.status === 'RUNNING').length,
+    waiting: assignments.filter((item) =>
+      ['PLANNED', 'READY', 'WAITING'].includes(item.status)
+    ).length,
+    failed: assignments.filter((item) =>
+      ['FAILED', 'BLOCKED'].includes(item.status)
+    ).length,
+  }
+}
+
 function compactExecution(record) {
   const run = record?.execution
   if (!run || typeof run !== 'object' || Array.isArray(run)) return null
@@ -312,6 +389,32 @@ function encodeOperationalModel(ops, navigation = {}) {
           safeCount(navigation.capabilities.toolCount),
         ]
       : undefined,
+    y: navigation.orchestration
+      ? (() => {
+          const counts = orchestrationCounts(navigation.orchestration)
+          return [
+            navigation.orchestration.status,
+            navigation.orchestration.orchestrationId,
+            navigation.orchestration.teamSize,
+            navigation.orchestration.maxParallel,
+            counts.completed,
+            counts.active,
+            counts.waiting,
+            counts.failed,
+            navigation.orchestration.handoffCount,
+            navigation.orchestration.integratedArtifactCount,
+          ]
+        })()
+      : undefined,
+    z: navigation.assignment
+      ? [
+          navigation.assignment.status,
+          navigation.assignment.assignmentId,
+          navigation.assignment.role,
+          safeCount(navigation.assignment.dependencies?.length),
+          navigation.assignment.artifactCount,
+        ]
+      : undefined,
     t: ops.activity.tokenUsage,
     c: ops.activity.costByCurrency,
     x: Object.keys(extension).length ? extension : undefined,
@@ -319,7 +422,7 @@ function encodeOperationalModel(ops, navigation = {}) {
   return `${OPS_MODEL_PREFIX}${encodeURIComponent(JSON.stringify(display))}`
 }
 
-function toThread(project, record, agentProfile = null, workspace = null) {
+function toThread(project, record, agentProfile = null, workspace = null, orchestration = null) {
   const task = record?.task && typeof record.task === 'object' ? record.task : record
   const ops = compactOperational(record, task)
   const objective = task.objective || 'Untitled Agency Agent task'
@@ -340,6 +443,13 @@ function toThread(project, record, agentProfile = null, workspace = null) {
   const agentId = safeText(agentProfile?.agent_id, 160)
   const agentName = safeText(agentProfile?.name, 128)
   const workspaceInfo = compactWorkspace(workspace)
+  const mission = compactOrchestration(orchestration)
+  const missionRunning = Boolean(
+    mission && ['RUNNING', 'INTEGRATING'].includes(mission.status)
+  )
+  const missionFailed = Boolean(
+    mission && ['FAILED', 'BLOCKED'].includes(mission.status)
+  )
 
   return {
     id: threadId,
@@ -357,14 +467,17 @@ function toThread(project, record, agentProfile = null, workspace = null) {
       agentId,
       agentName,
       workspace: workspaceInfo,
+      orchestration: mission,
     }) || task.execution_model || 'AGENCY_AGENT',
     effort: (task.risk || '').toLowerCase(),
     createdAt,
     lastActivityAt: updatedAt,
     lastFocusedAt: 0,
-    running: !executionFailed && (ACTIVE_STATUSES.has(status) || executionRunning),
-    unread: UNREAD_STATUSES.has(status),
-    hasError: ERROR_STATUSES.has(status) || executionFailed,
+    running: mission
+      ? missionRunning
+      : !executionFailed && (ACTIVE_STATUSES.has(status) || executionRunning),
+    unread: mission ? mission.status === 'BLOCKED' : UNREAD_STATUSES.has(status),
+    hasError: mission ? missionFailed : ERROR_STATUSES.has(status) || executionFailed,
     starred: false,
     routine: false,
     archived: status === 'DONE',
@@ -379,11 +492,15 @@ function toThread(project, record, agentProfile = null, workspace = null) {
       ownerAgent: task.owner_agent || '',
       ...(agentId ? { agentId, agentName: agentName || task.owner_agent || '' } : {}),
       ...(workspaceInfo?.bound ? { workspace: workspaceInfo } : {}),
+      ...(mission ? {
+        orchestrationId: mission.orchestrationId,
+        orchestrationStatus: mission.status,
+      } : {}),
     },
   }
 }
 
-function toAgentThread(project, profile, taskRecords = [], workspace = null) {
+function toAgentThread(project, profile, taskRecords = [], workspace = null, orchestrations = []) {
   const agentName = safeText(profile?.name, 128) || 'Agency Agent'
   const agentId = safeText(profile?.agent_id, 160)
   const owned = taskRecords.filter((record) => {
@@ -442,6 +559,24 @@ function toAgentThread(project, profile, taskRecords = [], workspace = null) {
   const registryUrl = operatorAgentsUrl(project.project_id)
   const workspaceInfo = compactWorkspace(workspace)
   const capabilities = compactCapabilities(profile)
+  const missionAssignments = (orchestrations || [])
+    .map(compactOrchestration)
+    .filter(Boolean)
+    .flatMap((mission) =>
+      mission.assignments
+        .filter((assignment) => assignment.agentId === agentId)
+        .map((assignment) => ({ mission, assignment }))
+    )
+  const activeMissionAssignment =
+    missionAssignments.find(({ assignment }) => assignment.status === 'RUNNING')
+    || missionAssignments.find(({ assignment }) => ['FAILED', 'BLOCKED'].includes(assignment.status))
+    || missionAssignments.find(({ assignment }) => ['READY', 'WAITING'].includes(assignment.status))
+    || missionAssignments[0]
+    || null
+  const silverflowRunning = activeMissionAssignment?.assignment.status === 'RUNNING'
+  const silverflowFailed = ['FAILED', 'BLOCKED'].includes(
+    activeMissionAssignment?.assignment.status || ''
+  )
 
   return {
     id: threadId,
@@ -458,14 +593,16 @@ function toAgentThread(project, profile, taskRecords = [], workspace = null) {
       status: profile?.enabled === false ? 'DISABLED' : 'REGISTERED',
       workspace: workspaceInfo,
       capabilities,
+      assignment: activeMissionAssignment?.assignment || null,
+      orchestration: activeMissionAssignment?.mission || null,
     }),
     effort: '',
     createdAt,
     lastActivityAt,
     lastFocusedAt: 0,
-    running,
+    running: activeMissionAssignment ? silverflowRunning : running,
     unread,
-    hasError,
+    hasError: activeMissionAssignment ? silverflowFailed : hasError,
     starred: false,
     routine: false,
     archived: profile?.enabled === false,
@@ -481,6 +618,12 @@ function toAgentThread(project, profile, taskRecords = [], workspace = null) {
       profile: true,
       capabilities,
       ...(workspaceInfo?.bound ? { workspace: workspaceInfo } : {}),
+      ...(activeMissionAssignment ? {
+        orchestrationId: activeMissionAssignment.mission.orchestrationId,
+        orchestrationStatus: activeMissionAssignment.mission.status,
+        assignmentId: activeMissionAssignment.assignment.assignmentId,
+        assignmentStatus: activeMissionAssignment.assignment.status,
+      } : {}),
     },
   }
 }
@@ -533,20 +676,29 @@ async function scanProject(project) {
     const tasks = Array.isArray(snapshot?.tasks) ? snapshot.tasks : []
     const agents = Array.isArray(snapshot?.agents) ? snapshot.agents : []
     const workspace = compactWorkspace(snapshot?.workspace)
+    const orchestrations = Array.isArray(snapshot?.orchestrations)
+      ? snapshot.orchestrations.map(compactOrchestration).filter(Boolean)
+      : []
+    const orchestrationByParentTask = new Map(
+      orchestrations.map((mission) => [mission.parentTaskId, mission])
+    )
     const profilesByName = new Map(
       agents
         .filter((profile) => profile?.name && profile?.agent_id)
         .map((profile) => [profile.name, profile])
     )
     return [
-      ...agents.map((profile) => toAgentThread(snapshotProject, profile, tasks, workspace)),
+      ...agents.map((profile) =>
+        toAgentThread(snapshotProject, profile, tasks, workspace, orchestrations)
+      ),
       ...tasks.map((record) => {
         const task = record?.task && typeof record.task === 'object' ? record.task : record
         return toThread(
           snapshotProject,
           record,
           profilesByName.get(task?.owner_agent) || null,
-          workspace
+          workspace,
+          orchestrationByParentTask.get(task?.id) || null
         )
       }),
     ]
@@ -608,8 +760,10 @@ export default {
 export {
   GOVERNED_ACTIONS,
   OPS_MODEL_PREFIX,
+  compactAssignment,
   compactCapabilities,
   compactExecution,
+  compactOrchestration,
   compactOperational,
   compactWorkspace,
   encodeOperationalModel,
