@@ -320,7 +320,7 @@ Agent World: Run · RÉUSSIE                                        ✅
 AW13 therefore meets its exit criteria: execution remains an explicit Agency Agent Operator authority while Agent World reflects durable run lifecycle state through the compact v1.3 projection.
 
 
-## AW14B — Compact Capability Visualization 🚧
+## AW14B — Compact Capability Visualization ✅
 
 Goal: show the effective governed capabilities of persistent AgentProfiles without exposing the underlying command prefixes, write globs or local paths.
 
@@ -336,12 +336,24 @@ Planned/implemented scope:
 Exit criteria:
 
 ```text
-snapshot v1.4 normalization                               ⏳
-compact FR/EN capability badge                            ⏳
-anti-leak tests for commands/write scopes/local paths     ⏳
-Agent World Quality green                                 ⏳
-real Windows AgentProfile capability smoke                ⏳
+snapshot v1.4 normalization                               ✅
+compact FR/EN capability badge                            ✅
+anti-leak tests for commands/write scopes/local paths     ✅
+Agent World Quality #70                                   ✅
+real Windows AgentProfile capability smoke                ✅
 ```
+
+Real-machine Windows evidence:
+
+```text
+AgentProfile: SilverKen-Platform-Engineer                  ✅
+AGENT · PLATFORM_ENGINEER                                  ✅
+Workspace · silverken-platform                             ✅
+Capacités · L✓ É✓ Cmd—                                    ✅
+raw commands/write globs/local paths not rendered          ✅
+```
+
+AW14B therefore meets its exit criteria. Agent World visualizes only compact effective capability state and still has no capability-edit or execution authority.
 
 ## After AW13
 
