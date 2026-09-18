@@ -432,6 +432,49 @@ test('AW15C projects live SilverFlow mission and specialist state without author
       (badge) => badge.label === 'SilverFlow · EN ATTENTE'
     )
   )
+
+  const completedMission = {
+    ...mission,
+    status: 'COMPLETED',
+    completed_at: '2026-09-18T18:05:00Z',
+    integrated_artifact_count: 1,
+    handoff_count: 4,
+    assignments: mission.assignments.map((assignment) => ({
+      ...assignment,
+      status: 'COMPLETED',
+      child_status: assignment.role === 'PLATFORM_ENGINEER' ? 'IMPLEMENTED' : 'ANALYZED',
+      artifact_count: assignment.role === 'PLATFORM_ENGINEER' ? 1 : 0,
+    })),
+  }
+  const implementedParent = snapshotRecord('IMPLEMENTED')
+  implementedParent.task.id = 'task-backlog'
+  const completedThread = toThread(project, implementedParent, platformProfile, null, completedMission)
+  assert.equal(completedThread.running, false)
+  assert.equal(completedThread.hasError, false)
+  assert.ok(
+    operationalBadges(decodeOperationalModel(completedThread.model), 'fr').some(
+      (badge) => badge.label === 'Mission · TERMINÉE · 3/3'
+    )
+  )
+
+  const olderCompleted = {
+    ...completedMission,
+    orchestration_id: 'orch-older',
+    started_at: '2026-09-17T18:00:00Z',
+    assignments: completedMission.assignments.map((assignment) => ({
+      ...assignment,
+      assignment_id: `old-${assignment.assignment_id}`,
+    })),
+  }
+  const latestPlatform = toAgentThread(
+    project,
+    platformProfile,
+    [],
+    null,
+    [completedMission, olderCompleted]
+  )
+  assert.equal(latestPlatform.ref.orchestrationId, 'orch-live-team')
+  assert.equal(latestPlatform.ref.assignmentStatus, 'COMPLETED')
 })
 
 
