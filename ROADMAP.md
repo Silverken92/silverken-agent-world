@@ -356,7 +356,7 @@ raw commands/write globs/local paths not rendered          ✅
 AW14B therefore meets its exit criteria. Agent World visualizes only compact effective capability state and still has no capability-edit or execution authority.
 
 
-## AW15C — Live Multi-Agent Team Visualization 🚧
+## AW15C — Live Multi-Agent Team Visualization ✅
 
 Goal: show one governed SilverFlow mission and the real lifecycle of each persistent specialist astronaut while Agency Agent remains the only execution authority.
 
@@ -377,9 +377,9 @@ snapshot v1.5 normalization                               ✅
 mission progress badge                                    ✅
 specialist terminal COMPLETED visualization               ✅
 anti-leak tests                                           ✅
-Agent World Quality #80                                   ✅
+Agent World Quality #81                                   ✅
 real Windows terminal team smoke                          ✅
-real Windows live WAITING/RUNNING handoff smoke           ⏳
+real Windows live WAITING/RUNNING handoff smoke           ✅
 ```
 
 Terminal Windows evidence:
@@ -391,6 +391,21 @@ Architect global state: Idle after mission completion      ✅
 double-normalization regression fixed                      ✅
 active-mission polling auto-accelerates to 3 seconds       ✅
 ```
+
+Live Windows evidence:
+
+```text
+mission: PLANIFIÉE · 0/3                                  ✅
+mission: EN COURS · 0/3                                   ✅
+Architect: SilverFlow · EN COURS / Working                ✅
+mission: EN COURS · 1/3 + Architect TERMINÉE              ✅
+QA: SilverFlow · EN COURS / Working at mission 2/3        ✅
+mission: TERMINÉE · 3/3                                   ✅
+Architect: Idle + SilverFlow TERMINÉE                      ✅
+QA: Idle + SilverFlow TERMINÉE                             ✅
+```
+
+AW15C therefore meets its exit criteria. Agent World now visualizes real SilverFlow handoffs and specialist lifecycle live while Agency Agent remains the sole execution authority.
 
 ## After AW13
 
