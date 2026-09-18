@@ -373,12 +373,23 @@ Scope:
 Exit criteria:
 
 ```text
-snapshot v1.5 normalization                               ⏳
-mission progress badge                                    ⏳
-specialist WAITING/RUNNING/COMPLETED visualization        ⏳
-anti-leak tests                                           ⏳
-Agent World Quality green                                 ⏳
-real Windows live-team smoke                              ⏳
+snapshot v1.5 normalization                               ✅
+mission progress badge                                    ✅
+specialist terminal COMPLETED visualization               ✅
+anti-leak tests                                           ✅
+Agent World Quality #80                                   ✅
+real Windows terminal team smoke                          ✅
+real Windows live WAITING/RUNNING handoff smoke           ⏳
+```
+
+Terminal Windows evidence:
+
+```text
+mission: Mission · TERMINÉE · 3/3                         ✅
+SilverKen-Architect: SilverFlow · TERMINÉE                ✅
+Architect global state: Idle after mission completion      ✅
+double-normalization regression fixed                      ✅
+active-mission polling auto-accelerates to 3 seconds       ✅
 ```
 
 ## After AW13
