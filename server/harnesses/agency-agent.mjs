@@ -229,6 +229,9 @@ function encodeOperationalModel(ops, navigation = {}) {
     q: ops.governedRequest
       ? [ops.governedRequest.status, ops.governedRequest.action]
       : undefined,
+    p: navigation.agentName
+      ? [safeText(navigation.agentName, 128), safeText(navigation.agentId, 160)]
+      : undefined,
     t: ops.activity.tokenUsage,
     c: ops.activity.costByCurrency,
     x: Object.keys(extension).length ? extension : undefined,
@@ -236,7 +239,7 @@ function encodeOperationalModel(ops, navigation = {}) {
   return `${OPS_MODEL_PREFIX}${encodeURIComponent(JSON.stringify(display))}`
 }
 
-function toThread(project, record) {
+function toThread(project, record, agentProfile = null) {
   const task = record?.task && typeof record.task === 'object' ? record.task : record
   const ops = compactOperational(record, task)
   const objective = task.objective || 'Untitled Agency Agent task'
@@ -248,6 +251,8 @@ function toThread(project, record) {
   const serializedSize = textBytes(JSON.stringify(record))
   const operatorTask = operatorTaskUrl(project.project_id, task.id)
   const threadId = `agency-agent:${project.project_id}:${task.id}`
+  const agentId = safeText(agentProfile?.agent_id, 160)
+  const agentName = safeText(agentProfile?.name, 128)
 
   return {
     id: threadId,
@@ -258,7 +263,13 @@ function toThread(project, record) {
     worktree: worktreeFor(task),
     cwd: '',
     gitBranch: branchFor(task),
-    model: encodeOperationalModel(ops, { operatorUrl: operatorTask, threadId, status }) || task.execution_model || 'AGENCY_AGENT',
+    model: encodeOperationalModel(ops, {
+      operatorUrl: operatorTask,
+      threadId,
+      status,
+      agentId,
+      agentName,
+    }) || task.execution_model || 'AGENCY_AGENT',
     effort: (task.risk || '').toLowerCase(),
     createdAt,
     lastActivityAt: updatedAt,
@@ -278,6 +289,7 @@ function toThread(project, record) {
       taskId: task.id,
       status,
       ownerAgent: task.owner_agent || '',
+      ...(agentId ? { agentId, agentName: agentName || task.owner_agent || '' } : {}),
     },
   }
 }
@@ -405,9 +417,17 @@ async function scanProject(project) {
     const snapshotProject = snapshot?.project || project
     const tasks = Array.isArray(snapshot?.tasks) ? snapshot.tasks : []
     const agents = Array.isArray(snapshot?.agents) ? snapshot.agents : []
+    const profilesByName = new Map(
+      agents
+        .filter((profile) => profile?.name && profile?.agent_id)
+        .map((profile) => [profile.name, profile])
+    )
     return [
       ...agents.map((profile) => toAgentThread(snapshotProject, profile, tasks)),
-      ...tasks.map((record) => toThread(snapshotProject, record)),
+      ...tasks.map((record) => {
+        const task = record?.task && typeof record.task === 'object' ? record.task : record
+        return toThread(snapshotProject, record, profilesByName.get(task?.owner_agent) || null)
+      }),
     ]
   } catch (error) {
     if (error.status !== 404) throw error
