@@ -247,7 +247,31 @@ Browser runtime proof reported `missionLinks.group.children.length === 1`, confi
 
 AW11 therefore meets its exit criteria: Agent World now visualizes explicit, stable AgentProfile ownership of governed missions without inventing links for legacy free-form task owners or changing the Agency Agent authority boundary.
 
-## After AW11
+## AW12 — Project Workspace Binding 🚧
+
+Goal: give each Agency Agent project one authoritative local Git repository binding before any future governed execution can target real code.
+
+Current implementation:
+
+- Agency Agent owns the durable workspace binding and validates the exact Git root;
+- full absolute paths remain Operator-session-only;
+- Agent World snapshot v1.2 receives only repository basename, branch, HEAD, clean/dirty and valid/bound state;
+- Agent World normalizes only that compact projection and discards unknown/path fields;
+- task and persistent-agent cards show a `Workspace · <repository>` operational badge;
+- workspace status remains descriptive: Agent World still cannot bind a repo or launch execution.
+
+Exit criteria:
+
+```text
+Agency Agent migration 0003 + RBAC/API          ⏳
+Operator binds a real F:\\SilverKen repo       ⏳
+Agent World receives no absolute local path      ⏳
+Workspace badge shows repository + branch state  ⏳
+Agency Agent + Agent World quality gates green   ⏳
+real Windows smoke                               ⏳
+```
+
+## After AW12
 
 Candidate future work, not pre-approved:
 

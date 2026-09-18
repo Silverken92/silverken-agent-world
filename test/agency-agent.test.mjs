@@ -1,7 +1,8 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 
-import agencyAgent, { toThread } from '../server/harnesses/agency-agent.mjs'
+import agencyAgent, { compactWorkspace, toThread } from '../server/harnesses/agency-agent.mjs'
+import { decodeOperationalModel, operationalBadges } from '../src/ui/operational.js'
 
 const project = {
   project_id: 'proj-1',
@@ -145,6 +146,45 @@ test('Agency Agent operational snapshot stays compact and does not fake PR merge
   assert.equal(thread.lastActivityAt, Date.parse('2026-09-09T20:06:00Z'))
 })
 
+
+test('AW12 workspace projection stays compact and excludes local paths', () => {
+  const workspace = {
+    bound: true,
+    repository: 'silverken-platform',
+    branch: 'main',
+    head: '1234567890abcdef1234567890abcdef12345678',
+    clean: true,
+    valid: true,
+    repository_path: 'F:\\SilverKen\\projects\\silverken-platform',
+  }
+  assert.deepEqual(compactWorkspace(workspace), {
+    bound: true,
+    repository: 'silverken-platform',
+    branch: 'main',
+    head: '1234567890abcdef1234567890abcdef12345678',
+    clean: true,
+    valid: true,
+  })
+
+  const thread = toThread(project, snapshotRecord(), null, workspace)
+  assert.equal(thread.ref.workspace.repository, 'silverken-platform')
+  assert.equal(JSON.stringify(thread).includes('F:\\\\SilverKen'), false)
+
+  const decoded = decodeOperationalModel(thread.model)
+  assert.deepEqual(decoded.w, [
+    'silverken-platform',
+    'main',
+    true,
+    true,
+    '1234567890abcdef1234567890abcdef12345678',
+  ])
+  assert.ok(
+    operationalBadges(decoded, 'fr').some(
+      (badge) => badge.label === 'Workspace · silverken-platform' && badge.tone === 'success'
+    )
+  )
+})
+
 test('Agency Agent bridge is read-only', () => {
   assert.equal(agencyAgent.openThread({}).ok, false)
   assert.equal(agencyAgent.newSession('/tmp').ok, false)
@@ -194,7 +234,19 @@ test('Agency Agent live scan consumes one bounded operational snapshot per proje
     assert.equal(options.headers?.Authorization, 'Bearer aa_fixture_secret')
     if (String(url).endsWith('/api/v1/projects')) return jsonResponse([project])
     if (String(url).endsWith('/api/v1/projects/proj-1/agent-world')) {
-      return jsonResponse({ schema_version: '1.0', project, tasks: [snapshotRecord('NEEDS_USER_DECISION')] })
+      return jsonResponse({
+        schema_version: '1.2',
+        project,
+        workspace: {
+          bound: true,
+          repository: 'silverken-platform',
+          branch: 'main',
+          head: '1234567890abcdef1234567890abcdef12345678',
+          clean: true,
+          valid: true,
+        },
+        tasks: [snapshotRecord('NEEDS_USER_DECISION')],
+      })
     }
     return jsonResponse({ detail: 'not found' }, 404)
   }
@@ -207,6 +259,7 @@ test('Agency Agent live scan consumes one bounded operational snapshot per proje
   assert.equal(threads[0].project, 'Agency Agent')
   assert.equal(threads[0].operational.silverguard.disposition, 'PASS')
   assert.equal(threads[0].operational.activity.tokenUsage, 12345)
+  assert.equal(threads[0].ref.workspace.repository, 'silverken-platform')
   assert.equal(JSON.stringify(threads[0]).includes('aa_fixture_secret'), false)
   assert.ok(calls.some((call) => call.url === 'http://localhost:9999/api/v1/projects/proj-1/agent-world'))
   assert.equal(calls.some((call) => call.url.endsWith('/tasks')), false)
