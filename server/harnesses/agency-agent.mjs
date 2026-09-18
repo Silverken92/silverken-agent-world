@@ -442,8 +442,12 @@ function toThread(project, record, agentProfile = null, workspace = null, orches
   const agentName = safeText(agentProfile?.name, 128)
   const workspaceInfo = compactWorkspace(workspace)
   const mission = compactOrchestration(orchestration)
-  const missionRunning = mission && ['RUNNING', 'INTEGRATING'].includes(mission.status)
-  const missionFailed = mission && ['FAILED', 'BLOCKED'].includes(mission.status)
+  const missionRunning = Boolean(
+    mission && ['RUNNING', 'INTEGRATING'].includes(mission.status)
+  )
+  const missionFailed = Boolean(
+    mission && ['FAILED', 'BLOCKED'].includes(mission.status)
+  )
 
   return {
     id: threadId,
