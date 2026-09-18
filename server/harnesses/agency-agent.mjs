@@ -88,6 +88,18 @@ function safeCount(value) {
   return Number.isFinite(number) && number >= 0 ? Math.floor(number) : 0
 }
 
+function compactWorkspace(value) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return null
+  return {
+    bound: value.bound === true,
+    repository: safeText(value.repository, 255),
+    branch: safeText(value.branch, 255),
+    head: safeText(value.head, 64),
+    clean: typeof value.clean === 'boolean' ? value.clean : null,
+    valid: value.valid === true,
+  }
+}
+
 function safeCosts(value) {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return {}
   const out = {}
@@ -232,6 +244,15 @@ function encodeOperationalModel(ops, navigation = {}) {
     p: navigation.agentName
       ? [safeText(navigation.agentName, 128), safeText(navigation.agentId, 160)]
       : undefined,
+    w: navigation.workspace?.bound
+      ? [
+          safeText(navigation.workspace.repository, 255),
+          safeText(navigation.workspace.branch, 255),
+          navigation.workspace.clean,
+          navigation.workspace.valid === true,
+          safeText(navigation.workspace.head, 64),
+        ]
+      : undefined,
     t: ops.activity.tokenUsage,
     c: ops.activity.costByCurrency,
     x: Object.keys(extension).length ? extension : undefined,
@@ -239,7 +260,7 @@ function encodeOperationalModel(ops, navigation = {}) {
   return `${OPS_MODEL_PREFIX}${encodeURIComponent(JSON.stringify(display))}`
 }
 
-function toThread(project, record, agentProfile = null) {
+function toThread(project, record, agentProfile = null, workspace = null) {
   const task = record?.task && typeof record.task === 'object' ? record.task : record
   const ops = compactOperational(record, task)
   const objective = task.objective || 'Untitled Agency Agent task'
@@ -253,6 +274,7 @@ function toThread(project, record, agentProfile = null) {
   const threadId = `agency-agent:${project.project_id}:${task.id}`
   const agentId = safeText(agentProfile?.agent_id, 160)
   const agentName = safeText(agentProfile?.name, 128)
+  const workspaceInfo = compactWorkspace(workspace)
 
   return {
     id: threadId,
@@ -269,6 +291,7 @@ function toThread(project, record, agentProfile = null) {
       status,
       agentId,
       agentName,
+      workspace: workspaceInfo,
     }) || task.execution_model || 'AGENCY_AGENT',
     effort: (task.risk || '').toLowerCase(),
     createdAt,
@@ -290,11 +313,12 @@ function toThread(project, record, agentProfile = null) {
       status,
       ownerAgent: task.owner_agent || '',
       ...(agentId ? { agentId, agentName: agentName || task.owner_agent || '' } : {}),
+      ...(workspaceInfo?.bound ? { workspace: workspaceInfo } : {}),
     },
   }
 }
 
-function toAgentThread(project, profile, taskRecords = []) {
+function toAgentThread(project, profile, taskRecords = [], workspace = null) {
   const agentName = safeText(profile?.name, 128) || 'Agency Agent'
   const agentId = safeText(profile?.agent_id, 160)
   const owned = taskRecords.filter((record) => {
@@ -335,6 +359,7 @@ function toAgentThread(project, profile, taskRecords = []) {
     governedRequest: null,
   }
   const registryUrl = operatorAgentsUrl(project.project_id)
+  const workspaceInfo = compactWorkspace(workspace)
 
   return {
     id: threadId,
@@ -345,7 +370,12 @@ function toAgentThread(project, profile, taskRecords = []) {
     worktree: '',
     cwd: '',
     gitBranch: '',
-    model: encodeOperationalModel(ops, { operatorUrl: registryUrl, threadId, status: profile?.enabled === false ? 'DISABLED' : 'REGISTERED' }),
+    model: encodeOperationalModel(ops, {
+      operatorUrl: registryUrl,
+      threadId,
+      status: profile?.enabled === false ? 'DISABLED' : 'REGISTERED',
+      workspace: workspaceInfo,
+    }),
     effort: '',
     createdAt,
     lastActivityAt,
@@ -366,6 +396,7 @@ function toAgentThread(project, profile, taskRecords = []) {
       agentName,
       role,
       profile: true,
+      ...(workspaceInfo?.bound ? { workspace: workspaceInfo } : {}),
     },
   }
 }
@@ -417,16 +448,22 @@ async function scanProject(project) {
     const snapshotProject = snapshot?.project || project
     const tasks = Array.isArray(snapshot?.tasks) ? snapshot.tasks : []
     const agents = Array.isArray(snapshot?.agents) ? snapshot.agents : []
+    const workspace = compactWorkspace(snapshot?.workspace)
     const profilesByName = new Map(
       agents
         .filter((profile) => profile?.name && profile?.agent_id)
         .map((profile) => [profile.name, profile])
     )
     return [
-      ...agents.map((profile) => toAgentThread(snapshotProject, profile, tasks)),
+      ...agents.map((profile) => toAgentThread(snapshotProject, profile, tasks, workspace)),
       ...tasks.map((record) => {
         const task = record?.task && typeof record.task === 'object' ? record.task : record
-        return toThread(snapshotProject, record, profilesByName.get(task?.owner_agent) || null)
+        return toThread(
+          snapshotProject,
+          record,
+          profilesByName.get(task?.owner_agent) || null,
+          workspace
+        )
       }),
     ]
   } catch (error) {
@@ -488,6 +525,7 @@ export {
   GOVERNED_ACTIONS,
   OPS_MODEL_PREFIX,
   compactOperational,
+  compactWorkspace,
   encodeOperationalModel,
   operatorAgentsUrl,
   operatorTaskUrl,
