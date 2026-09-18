@@ -146,6 +146,27 @@ export function operationalBadges(data, locale = 'en') {
   }
 
   if (data.m) add(String(data.m), 'model', fr ? 'Modèle d’exécution Agency Agent' : 'Agency Agent execution model')
+  if (Array.isArray(data.w) && data.w.length >= 4) {
+    const repository = String(data.w[0] || '').trim()
+    const branch = String(data.w[1] || '').trim()
+    const clean = data.w[2]
+    const valid = data.w[3] === true
+    const head = String(data.w[4] || '').trim()
+    if (repository) {
+      const tone = !valid ? 'danger' : clean === false ? 'pending' : 'success'
+      const stateLabel = !valid
+        ? (fr ? 'invalide' : 'invalid')
+        : clean === false
+          ? (fr ? 'modifié' : 'dirty')
+          : (fr ? 'propre' : 'clean')
+      const detail = [
+        branch ? `${fr ? 'Branche' : 'Branch'} · ${branch}` : '',
+        `${fr ? 'État' : 'State'} · ${stateLabel}`,
+        head ? `HEAD · ${head.slice(0, 12)}` : '',
+      ].filter(Boolean).join(' · ')
+      add(`Workspace · ${repository}`, tone, detail)
+    }
+  }
   const missionAgent = Array.isArray(data.p) ? String(data.p[0] || '').trim() : ''
   if (missionAgent) {
     add(
