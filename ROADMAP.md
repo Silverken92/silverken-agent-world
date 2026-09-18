@@ -210,11 +210,35 @@ role: FRONTEND                                                  ✅
 
 AW10 therefore meets its real-machine exit criteria: an agent can be created in Operator, assigned governed work, and exist as a persistent 3D identity without an implicit execution side effect.
 
-## After AW10
+## AW11 — Agent Mission Topology 🚧
+
+Goal: make the 3D colony explain who owns each governed mission by linking task/mission objects to the persistent AgentProfile that Agency Agent assigned.
+
+Current implementation on the AW11 branch:
+
+- mission threads resolve their registered AgentProfile through the AW10 snapshot;
+- the normalized relation carries the stable `agent_id` plus display name;
+- persistent agent identities are ordered beside their explicitly assigned missions;
+- Agent World draws a read-only visual connector from the persistent agent site to each linked mission site;
+- task cards expose `Mission · <agent>` in FR/EN instead of relying on an ambiguous owner label;
+- legacy tasks without a resolvable AgentProfile remain unchanged and receive no inferred link;
+- no task state, assignment, AgentProfile or source system is mutated by topology rendering.
+
+Exit criteria before AW11 is marked complete:
+
+```text
+explicit agent_id relation in /api/threads        ⏳
+persistent agent beside assigned mission          ⏳
+visible 3D agent → mission connector               ⏳
+FR/EN mission ownership badge                      ⏳
+unregistered legacy mission remains compatible     ⏳
+real Windows smoke with Tuce-Frontend              ⏳
+```
+
+## After AW11
 
 Candidate future work, not pre-approved:
 
-- visually group mission/task objects around their persistent AgentProfile astronaut;
 - agent templates/presets and richer capability policy authoring;
 - explicit execution controls and run lifecycle only through separate ADR/RBAC/idempotency work;
 - optional desktop packaging / tray launcher;
