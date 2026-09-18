@@ -596,7 +596,7 @@ window.addEventListener('keydown', (e) => {
 
 function hasLiveSilverFlowMission(list = threads) {
   return list.some((thread) =>
-    thread?.harness === 'agency-agent'
+    (thread?.harness === 'agency-agent' || thread?.source === 'agency-agent')
     && ['RUNNING', 'INTEGRATING'].includes(thread?.ref?.orchestrationStatus || '')
   )
 }
