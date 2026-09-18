@@ -355,6 +355,32 @@ raw commands/write globs/local paths not rendered          ✅
 
 AW14B therefore meets its exit criteria. Agent World visualizes only compact effective capability state and still has no capability-edit or execution authority.
 
+
+## AW15C — Live Multi-Agent Team Visualization 🚧
+
+Goal: show one governed SilverFlow mission and the real lifecycle of each persistent specialist astronaut while Agency Agent remains the only execution authority.
+
+Scope:
+
+- consume Agency Agent snapshot v1.5 orchestration summaries;
+- mission task cards show compact mission status, progress, active/waiting/failed counts, handoffs and integrated artifact count;
+- persistent AgentProfile astronauts show their current SilverFlow assignment as WAITING / RUNNING / COMPLETED / BLOCKED / FAILED;
+- assignment state overrides generic parent-task activity so an Architect that already handed off stops animating while a waiting QA remains idle;
+- FR/EN mission and specialist badges;
+- no raw repository paths, worktree paths, write globs, command prefixes, prompts or credentials;
+- no launch, cancel, retry or policy-edit authority in Agent World.
+
+Exit criteria:
+
+```text
+snapshot v1.5 normalization                               ⏳
+mission progress badge                                    ⏳
+specialist WAITING/RUNNING/COMPLETED visualization        ⏳
+anti-leak tests                                           ⏳
+Agent World Quality green                                 ⏳
+real Windows live-team smoke                              ⏳
+```
+
 ## After AW13
 
 Candidate future work, not pre-approved:
