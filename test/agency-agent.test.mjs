@@ -2,8 +2,10 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 
 import agencyAgent, {
+  compactAssignment,
   compactCapabilities,
   compactExecution,
+  compactOrchestration,
   compactWorkspace,
   toAgentThread,
   toThread,
@@ -257,6 +259,182 @@ test('AW13 failed execution stops the active animation and surfaces an error', (
   )
 })
 
+
+test('AW15C projects live SilverFlow mission and specialist state without authority', () => {
+  const mission = {
+    orchestration_id: 'orch-live-team',
+    parent_task_id: 'task-backlog',
+    status: 'RUNNING',
+    team_size: 3,
+    max_parallel: 3,
+    started_at: '2026-09-18T18:00:00Z',
+    completed_at: null,
+    integrated_artifact_count: 0,
+    handoff_count: 1,
+    blocked: false,
+    integration_target: 'F:\\SilverKen\\projects\\silverken-platform',
+    assignments: [
+      {
+        assignment_id: 'a01-architect',
+        agent_id: 'agt-architect',
+        agent_name: 'SilverKen-Architect',
+        role: 'ARCHITECT',
+        status: 'COMPLETED',
+        dependencies: [],
+        child_task_id: 'child-architect',
+        child_status: 'ANALYZED',
+        artifact_count: 0,
+        allowed_write_globs: [],
+      },
+      {
+        assignment_id: 'a02-platform',
+        agent_id: 'agt-platform',
+        agent_name: 'SilverKen-Platform-Engineer',
+        role: 'PLATFORM_ENGINEER',
+        status: 'RUNNING',
+        dependencies: ['a01-architect'],
+        child_task_id: 'child-platform',
+        child_status: 'IN_PROGRESS',
+        artifact_count: 0,
+        allowed_write_globs: ['docs/**'],
+        allowed_command_prefixes: [['pnpm', 'test']],
+      },
+      {
+        assignment_id: 'a03-qa',
+        agent_id: 'agt-qa',
+        agent_name: 'SilverKen-QA',
+        role: 'QA',
+        status: 'WAITING',
+        dependencies: ['a02-platform'],
+        child_task_id: '',
+        child_status: '',
+        artifact_count: 0,
+      },
+    ],
+  }
+
+  assert.deepEqual(compactAssignment(mission.assignments[1]), {
+    assignmentId: 'a02-platform',
+    agentId: 'agt-platform',
+    agentName: 'SilverKen-Platform-Engineer',
+    role: 'PLATFORM_ENGINEER',
+    status: 'RUNNING',
+    dependencies: ['a01-architect'],
+    childTaskId: 'child-platform',
+    childStatus: 'IN_PROGRESS',
+    artifactCount: 0,
+  })
+
+  const compactMission = compactOrchestration(mission)
+  assert.equal(compactMission.status, 'RUNNING')
+  assert.equal(compactMission.assignments.length, 3)
+  const serializedMission = JSON.stringify(compactMission)
+  assert.equal(serializedMission.includes('F:\\\\SilverKen'), false)
+  assert.equal(serializedMission.includes('docs/**'), false)
+  assert.equal(serializedMission.includes('pnpm'), false)
+  assert.equal(serializedMission.includes('integration_target'), false)
+  assert.equal(serializedMission.includes('allowed_write_globs'), false)
+
+  const parent = snapshotRecord('BACKLOG')
+  parent.task.id = 'task-backlog'
+  const platformProfile = {
+    agent_id: 'agt-platform',
+    name: 'SilverKen-Platform-Engineer',
+    role: 'PLATFORM_ENGINEER',
+    enabled: true,
+    capabilities: {
+      read: true,
+      write: true,
+      commands: false,
+      policy_valid: true,
+      tool_count: 5,
+    },
+    created_at: '2026-09-18T17:00:00Z',
+    updated_at: '2026-09-18T17:00:00Z',
+  }
+  const architectProfile = {
+    agent_id: 'agt-architect',
+    name: 'SilverKen-Architect',
+    role: 'ARCHITECT',
+    enabled: true,
+    capabilities: {
+      read: true,
+      write: false,
+      commands: false,
+      policy_valid: true,
+      tool_count: 4,
+    },
+    created_at: '2026-09-18T17:00:00Z',
+    updated_at: '2026-09-18T17:00:00Z',
+  }
+  const qaProfile = {
+    agent_id: 'agt-qa',
+    name: 'SilverKen-QA',
+    role: 'QA',
+    enabled: true,
+    capabilities: {
+      read: true,
+      write: false,
+      commands: false,
+      policy_valid: true,
+      tool_count: 4,
+    },
+    created_at: '2026-09-18T17:00:00Z',
+    updated_at: '2026-09-18T17:00:00Z',
+  }
+
+  const missionThread = toThread(project, parent, platformProfile, null, mission)
+  assert.equal(missionThread.running, true)
+  assert.equal(missionThread.ref.orchestrationId, 'orch-live-team')
+  assert.ok(
+    operationalBadges(decodeOperationalModel(missionThread.model), 'fr').some(
+      (badge) =>
+        badge.label === 'Mission · EN COURS · 1/3'
+        && badge.tone === 'pending'
+    )
+  )
+
+  const platformThread = toAgentThread(
+    project,
+    platformProfile,
+    [],
+    null,
+    [mission]
+  )
+  assert.equal(platformThread.running, true)
+  assert.equal(platformThread.ref.assignmentStatus, 'RUNNING')
+  assert.ok(
+    operationalBadges(decodeOperationalModel(platformThread.model), 'fr').some(
+      (badge) => badge.label === 'SilverFlow · EN COURS'
+    )
+  )
+
+  const architectThread = toAgentThread(
+    project,
+    architectProfile,
+    [],
+    null,
+    [mission]
+  )
+  assert.equal(architectThread.running, false)
+  assert.equal(architectThread.ref.assignmentStatus, 'COMPLETED')
+  assert.ok(
+    operationalBadges(decodeOperationalModel(architectThread.model), 'en').some(
+      (badge) => badge.label === 'SilverFlow · COMPLETED'
+    )
+  )
+
+  const qaThread = toAgentThread(project, qaProfile, [], null, [mission])
+  assert.equal(qaThread.running, false)
+  assert.equal(qaThread.ref.assignmentStatus, 'WAITING')
+  assert.ok(
+    operationalBadges(decodeOperationalModel(qaThread.model), 'fr').some(
+      (badge) => badge.label === 'SilverFlow · EN ATTENTE'
+    )
+  )
+})
+
+
 test('AW14B capability projection is descriptive and strips raw authority', () => {
   const profile = {
     agent_id: 'agt-platform',
@@ -405,7 +583,7 @@ test('Agency Agent live scan consumes one bounded operational snapshot per proje
     if (String(url).endsWith('/api/v1/projects')) return jsonResponse([project])
     if (String(url).endsWith('/api/v1/projects/proj-1/agent-world')) {
       return jsonResponse({
-        schema_version: '1.4',
+        schema_version: '1.5',
         project,
         workspace: {
           bound: true,
