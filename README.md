@@ -8,7 +8,7 @@ This repository is a fork of **[Station-Sciences/bot-crossing](https://github.co
 
 ## Status
 
-**Latest completed milestone: AW12 — Project Workspace Binding**
+**Latest completed milestone: AW13 — Governed Execution Visualization**
 
 | Capability | Status |
 | --- | --- |
@@ -30,6 +30,8 @@ This repository is a fork of **[Station-Sciences/bot-crossing](https://github.co
 | AgentProfile → mission topology links | ✅ AW11 real-machine smoke |
 | Project → validated local Git workspace binding | ✅ AW12 real-machine smoke |
 | Path-free workspace status in Agent World | ✅ AW12 |
+| Governed execution lifecycle projection | ✅ AW13 |
+| Real RUNNING → SUCCEEDED visualization | ✅ AW13 real-machine smoke |
 
 ## Product model
 
@@ -118,6 +120,26 @@ Workspace · silverken-platform
 ```
 
 A direct payload check confirmed that `F:\\SilverKen` is absent from Agent World data.
+
+## AW13 — governed execution visualization
+
+AW13 adds an explicit, Operator-controlled local execution path in Agency Agent and projects only compact run state into Agent World. Execution authority remains entirely in Agency Agent; Agent World cannot select a repository, model, tool grant, command prefix, write scope or start a run.
+
+Real-machine Windows smoke validated the full path:
+
+```text
+Operator preflight: SilverKen-Platform-Engineer / silverken-platform / main / gpt-5.6-sol ✅
+Agency Agent migration: 0004_execution_control                                        ✅
+OpenAI provider + model configured                                                     ✅
+RUNNING projected into Agent World                                                     ✅
+mission + persistent AgentProfile active while RUNNING                                 ✅
+Operator audit: execution.completed / SUCCESS                                          ✅
+task lifecycle stopped at IMPLEMENTED                                                   ✅
+Agent World terminal badge: Run · RÉUSSIE                                              ✅
+bounded artifact: docs/AW13_SMOKE.md                                                   ✅
+```
+
+The smoke wrote only the explicitly authorized `docs/AW13_SMOKE.md` path. Agent World observed the lifecycle through snapshot v1.3 and never received execution authority or the absolute local workspace path.
 
 ## Quick start — local launcher
 
@@ -232,10 +254,10 @@ npm test
 npm run build
 ```
 
-AW12 Agent World merged to `main` at:
+AW13 Agent World merged to `main` at:
 
 ```text
-d95c822722bb8286d9ec172aead23a0aaaf65610
+6c306cc4c6c126ae54c18f16a4b4c95e481855f9
 ```
 
 Post-merge quality gate:
@@ -246,13 +268,13 @@ tests                    ✅
 production build         ✅
 ```
 
-Agency Agent AW12 merged to `main` at:
+Agency Agent AW13 merged to `main` at:
 
 ```text
-f13d5574877316b6ebbd19c52ab585d6bea98239
+69d371557ea0fdf3a1de5717d933aa9211ea6abf
 ```
 
-Its Repository Quality, PostgreSQL migration/backup/restore and production-container smokes are green.
+Its Repository Quality gate is green; the real Windows AW13 preflight/run smoke also completed successfully.
 
 Agency Agent AW10 merged to its `main` at:
 
@@ -281,6 +303,7 @@ AW9.1 Operator UX + FR/EN                     ✅
 AW10  Persistent Agent Registry + 3D identity ✅
 AW11  Agent Mission Topology                  ✅
 AW12  Project Workspace Binding                ✅
+AW13  Governed Execution Visualization          ✅
 ```
 
 ## Upstream relationship
