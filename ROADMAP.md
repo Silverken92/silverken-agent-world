@@ -439,7 +439,7 @@ Real Windows evidence confirmed that task cards expose **Preuves & trace**, the 
 
 AW17 therefore meets its navigation exit criteria.
 
-## AW18 — Friendly Agent Setup & Capability Labels 🚧
+## AW18 — Friendly Agent Setup & Capability Labels ✅
 
 Goal: make agent permissions understandable to non-specialist users while keeping all capability mutation inside authoritative Agency Agent Operator.
 
@@ -454,13 +454,17 @@ Scope:
 AW18 Agent World exit criteria:
 
 ```text
-plain-language FR capability label                              🚧
-plain-language EN capability label                              🚧
-existing anti-leak capability projection preserved             🚧
-tests updated                                                   🚧
-Agent World Quality green                                       🚧
-real Windows AgentProfile visual smoke                          NOT RUN
+plain-language FR capability label                              ✅
+plain-language EN capability label                              ✅
+existing anti-leak capability projection preserved             ✅
+tests updated                                                   ✅
+Agent World Quality #93                                         ✅
+real Windows AgentProfile visual smoke                          ✅
 ```
+
+Real Windows evidence confirmed that the full **Lecture / Écriture / Commandes** capability wording remains readable inside the astronaut card without ellipsis, while task and mission cards retain their existing navigation behavior. No raw capability grants or mutation authority were added to Agent World.
+
+AW18 therefore meets its capability-label exit criteria.
 
 ## After AW18
 
