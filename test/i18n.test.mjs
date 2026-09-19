@@ -52,6 +52,8 @@ test('French catalog covers the SilverKen governed-view vocabulary', () => {
   assert.equal(t('readOnly', 'fr'), 'Lecture seule')
   assert.equal(t('owner', 'fr'), 'Responsable')
   assert.equal(t('release', 'fr'), 'Livraison')
+  assert.equal(t('openProjectOperator', 'fr'), 'Ouvrir le projet dans Operator')
+  assert.equal(t('openProjectOperator', 'en'), 'Open project in Operator')
 })
 
 test('Agency Agent operational badges can be rendered in French without changing evidence semantics', () => {
