@@ -466,7 +466,7 @@ Real Windows evidence confirmed that the full **Lecture / Écriture / Commandes*
 
 AW18 therefore meets its capability-label exit criteria.
 
-## AW19 — Project Overview Navigation 🚧
+## AW19 — Project Overview Navigation ✅
 
 Goal: connect a project zone in Agent World directly to the new authoritative Operator **Overview / Vue d’ensemble** without exposing additional project data.
 
@@ -482,13 +482,17 @@ Scope:
 AW19 Agent World exit criteria:
 
 ```text
-safe project overview URL derivation                            🚧
-project sidebar Operator button                                🚧
-FR/EN project navigation copy                                  🚧
-task/profile navigation unchanged                              🚧
-tests/build green                                               🚧
-real Windows project-zone navigation smoke                      NOT RUN
+safe project overview URL derivation                            ✅
+project sidebar Operator button                                ✅
+FR/EN project navigation copy                                  ✅
+task/profile navigation unchanged                              ✅
+Agent World Quality #98                                         ✅
+real Windows project-zone navigation smoke                      ✅
 ```
+
+Real Windows evidence confirmed that the **SilverKen Platform** project sidebar exposes **Ouvrir le projet dans Operator**, and the button opens the authoritative Operator directly on **Vue d’ensemble** without task context. Task Evidence & Trace and AgentProfile navigation remain unchanged.
+
+AW19 therefore meets its project-navigation exit criteria.
 
 ## After AW19
 
