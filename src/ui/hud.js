@@ -525,7 +525,10 @@ export class Hud {
     this.$('#btn-new-session').disabled = !project.path
     this.$('#btn-reveal').disabled = !project.path
     this.$('#btn-copy-path').disabled = !project.path
-    this.$('#btn-operator-project').disabled = !this.actions.projectOperatorUrl?.(project.name)
+    const operatorProjectUrl = this.actions.projectOperatorUrl?.(project.name) || ''
+    const operatorProjectButton = this.$('#btn-operator-project')
+    operatorProjectButton.hidden = !operatorProjectUrl
+    operatorProjectButton.disabled = !operatorProjectUrl
 
     const n = project.threads.length
     const waiting = project.threads.filter((t) => t.status === 'waiting' || t.status === 'blocked').length
