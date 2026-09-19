@@ -165,9 +165,9 @@ export function operationalBadges(data, locale = 'en') {
   const lang = normalizeLocale(locale)
   const fr = lang === 'fr'
   const badges = []
-  const add = (label, tone = 'neutral', title = '') => {
+  const add = (label, tone = 'neutral', title = '', kind = '') => {
     if (!label) return
-    badges.push({ label, tone, title })
+    badges.push({ label, tone, title, kind })
   }
 
   if (data.m) add(String(data.m), 'model', fr ? 'Modèle d’exécution Agency Agent' : 'Agency Agent execution model')
@@ -253,7 +253,7 @@ export function operationalBadges(data, locale = 'en') {
       toolCount ? `${fr ? 'Outils' : 'Tools'} · ${toolCount}` : '',
       fr ? `Politique · ${policyValid ? 'valide' : 'à corriger'}` : `Policy · ${policyValid ? 'valid' : 'needs changes'}`,
     ].filter(Boolean).join(' · ')
-    add(label, policyValid ? 'agent' : 'danger', detail)
+    add(label, policyValid ? 'agent' : 'danger', detail, 'capabilities')
   }
 
   if (Array.isArray(data.u) && data.u.length >= 2) {
