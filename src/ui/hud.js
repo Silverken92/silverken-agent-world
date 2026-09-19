@@ -507,8 +507,11 @@ export class Hud {
     // The minute is part of the signature because `ago()` is: without it a repo where
     // nothing is happening keeps whatever "4m ago" it was first drawn with, for as long as
     // you leave the panel open.
+    const workspaceSignature = project.workspace
+      ? `${project.workspace.repository}:${project.workspace.branch}:${project.workspace.clean}:${project.workspace.valid}:${project.workspace.head}`
+      : ''
     const signature =
-      `${project.name}~${project.path}~${project.accent}~${project.selectedId}~${Math.floor(Date.now() / 60000)}~` +
+      `${project.name}~${project.path}~${workspaceSignature}~${project.accent}~${project.selectedId}~${Math.floor(Date.now() / 60000)}~` +
       project.threads.map((t) => `${t.id}:${t.status}:${t.title}:${t.lastActivityAt}`).join('|')
     panel.classList.add('drilled')
     if (this._last.project === signature) return
@@ -519,12 +522,48 @@ export class Hud {
     swatch.style.color = hex(project.accent) // the halo is `currentColor`
     this.$('.side .name').textContent = project.name
     const path = this.$('.side .path')
-    path.textContent = project.path ? shortPath(project.path) : 'folder unknown'
-    path.title = project.path || ''
-    // Nothing to open a new thread in, and nothing to reveal, without a folder on disk.
-    this.$('#btn-new-session').disabled = !project.path
-    this.$('#btn-reveal').disabled = !project.path
-    this.$('#btn-copy-path').disabled = !project.path
+    const managedWorkspace = project.workspace?.managed === true
+    path.dataset.managedWorkspace = managedWorkspace ? 'true' : 'false'
+    path.textContent = managedWorkspace
+      ? 'Managed workspace'
+      : project.path
+        ? shortPath(project.path)
+        : 'folder unknown'
+    path.title = managedWorkspace ? '' : project.path || ''
+
+    const workspace = this.$('.managed-workspace')
+    workspace.hidden = !managedWorkspace
+    if (managedWorkspace) {
+      workspace.dataset.clean = project.workspace.clean === true
+        ? 'true'
+        : project.workspace.clean === false
+          ? 'false'
+          : 'unknown'
+      workspace.dataset.valid = project.workspace.valid === true ? 'true' : 'false'
+      this.$('.workspace-repository').textContent = project.workspace.repository || '—'
+      this.$('.workspace-branch').textContent = project.workspace.branch || '—'
+      this.$('.workspace-head').textContent = project.workspace.head
+        ? project.workspace.head.slice(0, 12)
+        : '—'
+      this.$('.workspace-state').textContent = project.workspace.clean === true
+        ? 'Clean'
+        : project.workspace.clean === false
+          ? 'Modified'
+          : 'Unknown'
+      const validity = this.$('.workspace-validity')
+      validity.textContent = project.workspace.valid === true ? 'Valid' : 'Check required'
+      validity.className = `workspace-validity ${project.workspace.valid === true ? 'success' : 'warning'}`
+    }
+
+    // A managed Agency Agent workspace intentionally has no local path in Agent World.
+    // Hide local-only actions instead of presenting them as broken/disabled controls.
+    const localActions = !managedWorkspace
+    this.$('#btn-new-session').hidden = !localActions
+    this.$('#btn-reveal').closest('.pair').hidden = !localActions
+    this.$('#btn-new-session').disabled = localActions ? !project.path : true
+    this.$('#btn-reveal').disabled = localActions ? !project.path : true
+    this.$('#btn-copy-path').disabled = localActions ? !project.path : true
+
     const operatorProjectUrl = this.actions.projectOperatorUrl?.(project.name) || ''
     const operatorProjectButton = this.$('#btn-operator-project')
     operatorProjectButton.hidden = !operatorProjectUrl
@@ -941,6 +980,18 @@ const TEMPLATE = `
         </div>
         <button class="btn icon ghost" id="btn-locate" title="Fly to this zone">${ICON.locate}</button>
       </div>
+      <section class="managed-workspace" hidden aria-label="Managed workspace">
+        <div class="managed-workspace-head">
+          <strong class="workspace-title">Managed workspace</strong>
+          <span class="workspace-validity"></span>
+        </div>
+        <dl class="workspace-grid">
+          <div><dt class="workspace-repository-label">Repository</dt><dd class="workspace-repository"></dd></div>
+          <div><dt class="workspace-branch-label">Branch</dt><dd class="workspace-branch"></dd></div>
+          <div><dt class="workspace-state-label">Git state</dt><dd class="workspace-state"></dd></div>
+          <div><dt class="workspace-head-label">HEAD</dt><dd class="workspace-head"></dd></div>
+        </dl>
+      </section>
       <div class="project-actions">
         <button class="btn primary" id="btn-new-session" title="Start a new thread in this folder (C)">${ICON.plus} New conversation</button>
         <div class="pair">
