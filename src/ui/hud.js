@@ -366,6 +366,7 @@ export class Hud {
     on('#btn-new-session', 'click', () => this.actions.newConversation?.())
     on('#btn-reveal', 'click', () => this.actions.revealProject?.())
     on('#btn-copy-path', 'click', () => this.actions.copyProjectPath?.())
+    on('#btn-operator-project', 'click', () => this.actions.openProjectOperator?.())
     on('#btn-hide-project', 'click', () => this.actions.hideProject?.())
     on('#btn-hidden-toggle', 'click', () => this.toggleHiddenList())
     on('#btn-locate', 'click', () => this.actions.focusProject?.(this.project?.name))
@@ -524,6 +525,10 @@ export class Hud {
     this.$('#btn-new-session').disabled = !project.path
     this.$('#btn-reveal').disabled = !project.path
     this.$('#btn-copy-path').disabled = !project.path
+    const operatorProjectUrl = this.actions.projectOperatorUrl?.(project.name) || ''
+    const operatorProjectButton = this.$('#btn-operator-project')
+    operatorProjectButton.hidden = !operatorProjectUrl
+    operatorProjectButton.disabled = !operatorProjectUrl
 
     const n = project.threads.length
     const waiting = project.threads.filter((t) => t.status === 'waiting' || t.status === 'blocked').length
@@ -942,6 +947,7 @@ const TEMPLATE = `
           <button class="btn" id="btn-reveal" title="Show this folder in ${FILE_MANAGER}">${ICON.folder} ${FILE_MANAGER}</button>
           <button class="btn" id="btn-copy-path" title="Copy the folder path">${ICON.copy} Copy path</button>
         </div>
+        <button class="btn" id="btn-operator-project" title="Open this Agency Agent project in Operator">${ICON.open} Open in Operator</button>
         <button class="btn" id="btn-hide-project" title="Hide this repo from the colony — does not archive its threads">${ICON.eyeOff} Hide from colony</button>
       </div>
       <div class="threads-head"></div>

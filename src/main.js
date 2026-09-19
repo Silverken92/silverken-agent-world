@@ -18,6 +18,8 @@ import {
   revealFolder,
 } from './game/api.js'
 import { hideProject, hiddenCatalog, unhideProject } from './game/hidden-projects.js'
+import { decodeOperationalModel } from './ui/operational.js'
+import { operatorProjectOverviewUrl } from './ui/navigation.js'
 
 /**
  * Boot and the outer game loop.
@@ -64,6 +66,23 @@ let liveMissionPoll = 0
 const hoverGround = new THREE.Vector3()
 
 // ── actions the HUD can trigger ────────────────────────────────────────────────────────
+
+function operatorProjectUrlFor(name) {
+  if (!name) return ''
+  for (const thread of threads) {
+    if (thread.project !== name) continue
+    const model = decodeOperationalModel(thread.model)
+    const raw = model?.x?.o
+    if (typeof raw !== 'string' || !raw) continue
+    try {
+      const url = operatorProjectOverviewUrl(raw)
+      if (url) return url
+    } catch {
+      // Ignore malformed harness navigation and keep searching another thread in the project.
+    }
+  }
+  return ''
+}
 
 const actions = {
   resetView: () => rig.resetView(),
@@ -125,6 +144,17 @@ const actions = {
 
   /** The legend, and anything else that means "show me this repo". */
   pickProject: (name) => selectProject(name, { fly: true }),
+
+  projectOperatorUrl: (name) => operatorProjectUrlFor(name),
+
+  openProjectOperator: () => {
+    const url = operatorProjectUrlFor(selectedProject)
+    if (!url) {
+      hud.toast('No Agency Agent Operator link for this project', 'err')
+      return
+    }
+    window.open(url, '_blank', 'noopener,noreferrer')
+  },
 
   /** Back out of one repo to the list of all of them. The panel itself never leaves. */
   closeProject: () => {

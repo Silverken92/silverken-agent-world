@@ -8,7 +8,7 @@ This repository is a fork of **[Station-Sciences/bot-crossing](https://github.co
 
 ## Status
 
-**Latest completed milestone: AW18 — Friendly capability labels**
+**Latest completed milestone: AW19 — Project Overview navigation**
 
 | Capability | Status |
 | --- | --- |
@@ -37,6 +37,7 @@ This repository is a fork of **[Station-Sciences/bot-crossing](https://github.co
 | Operator cleanup + FR/EN guide | ✅ Agency Agent AW16 |
 | Agent World → Operator Evidence & Trace navigation | ✅ AW17 CI + Windows validated |
 | Plain-language AgentProfile capability labels | ✅ AW18 CI + Windows validated |
+| Project zone → Operator Overview navigation | ✅ AW19 CI + Windows validated |
 
 ## Product model
 
@@ -264,21 +265,21 @@ npm run build
 Latest completed Agent World milestone on `main`:
 
 ```text
-AW17
-9092e49c0d1d04a92d7097acdc04aea470128e8b
+AW18
+cd21bf87d71e052e562a78d0ea95c5549efb0c07
 ```
 
-AW17 validation recorded:
+AW18 validation recorded:
 
 ```text
-Agent World Quality #89      ✅
+Agent World Quality #96      ✅
 runtime dependency audit     ✅
 tests                        ✅
 production build             ✅
-real Windows trace navigation smoke ✅
+real Windows capability-label smoke ✅
 ```
 
-Paired Agency Agent milestones are complete through AW17. Operator owns the detailed Evidence & Trace view; Agent World exposes only safe navigation to that authoritative surface and keeps detailed evidence out of the 3D payload.
+Paired Agency Agent milestones are complete through AW18. AW19 keeps Agent World descriptive: project zones may navigate to the authenticated Operator Overview, but no project mutation or additional sensitive data is added to the 3D payload.
 
 ## Roadmap
 
@@ -305,6 +306,7 @@ AW15C Live Multi-Agent Team Visualization     ✅
 AW16  Operator Cleanup & Guide (Agency Agent) ✅
 AW17  Evidence & Trace navigation             ✅
 AW18  Friendly capability labels              ✅
+AW19  Project Overview navigation              ✅
 ```
 
 ## Upstream relationship

@@ -13,6 +13,19 @@ function safeHttpUrl(value, { githubOnly = false } = {}) {
   }
 }
 
+function operatorProjectOverviewUrl(value) {
+  const safe = safeHttpUrl(value)
+  if (!safe) return ''
+  try {
+    const url = new URL(safe)
+    url.searchParams.delete('task')
+    url.searchParams.set('view', 'overview')
+    return url.toString()
+  } catch {
+    return ''
+  }
+}
+
 function githubRepoUrl(repo) {
   const value = typeof repo === 'string' ? repo.trim() : ''
   if (!/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/.test(value)) return ''
@@ -71,4 +84,4 @@ export function governedNavigation(data, locale = 'en') {
     .filter((action) => action.url)
 }
 
-export { githubRepoUrl, safeHttpUrl }
+export { githubRepoUrl, operatorProjectOverviewUrl, safeHttpUrl }
