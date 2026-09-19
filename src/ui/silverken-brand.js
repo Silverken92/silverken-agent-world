@@ -137,7 +137,7 @@ function applyOperationalBadges(root = document) {
     const badges = operationalBadges(data, currentLocale)
     for (const badge of badges) {
       const el = document.createElement('span')
-      el.className = `tag sk-op ${badge.tone}`
+      el.className = `tag sk-op ${badge.tone}${badge.kind ? ` ${badge.kind}` : ''}`
       el.textContent = badge.label
       if (badge.title) el.title = badge.title
       meta.appendChild(el)
