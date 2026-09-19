@@ -19,6 +19,7 @@ import {
 } from './game/api.js'
 import { hideProject, hiddenCatalog, unhideProject } from './game/hidden-projects.js'
 import { decodeOperationalModel } from './ui/operational.js'
+import { operatorProjectOverviewUrl } from './ui/navigation.js'
 
 /**
  * Boot and the outer game loop.
@@ -74,11 +75,8 @@ function operatorProjectUrlFor(name) {
     const raw = model?.x?.o
     if (typeof raw !== 'string' || !raw) continue
     try {
-      const url = new URL(raw)
-      if (!['http:', 'https:'].includes(url.protocol) || url.username || url.password) continue
-      url.searchParams.delete('task')
-      url.searchParams.set('view', 'overview')
-      return url.toString()
+      const url = operatorProjectOverviewUrl(raw)
+      if (url) return url
     } catch {
       // Ignore malformed harness navigation and keep searching another thread in the project.
     }
