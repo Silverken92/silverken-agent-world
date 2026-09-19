@@ -8,8 +8,7 @@ This repository is a fork of **[Station-Sciences/bot-crossing](https://github.co
 
 ## Status
 
-**Latest completed milestone: AW19 — Project Overview navigation**  
-**Current product slice: AW20 — Governed Workspace UX (in progress)**
+**Latest completed milestone: AW20 — Governed Workspace UX**
 
 | Capability | Status |
 | --- | --- |
@@ -39,7 +38,7 @@ This repository is a fork of **[Station-Sciences/bot-crossing](https://github.co
 | Agent World → Operator Evidence & Trace navigation | ✅ AW17 CI + Windows validated |
 | Plain-language AgentProfile capability labels | ✅ AW18 CI + Windows validated |
 | Project zone → Operator Overview navigation | ✅ AW19 CI + Windows validated |
-| Governed workspace sidebar | 🚧 AW20 in progress |
+| Governed workspace sidebar | ✅ AW20 CI + Windows validated |
 
 ## Product model
 
@@ -264,24 +263,17 @@ npm test
 npm run build
 ```
 
-Latest completed Agent World milestone on `main`:
+AW20 validation on the feature branch recorded:
 
 ```text
-AW19
-5f8014eb4f70aafb49c0d81e63886d575e3961fd
-```
-
-AW19 validation recorded:
-
-```text
-Agent World Quality #101     ✅
+Agent World Quality #104     ✅
 runtime dependency audit     ✅
 tests                        ✅
 production build             ✅
-real Windows project Overview navigation smoke ✅
+real Windows governed-workspace sidebar smoke ✅
 ```
 
-Paired Agency Agent milestones are complete through AW19. AW20 continues to keep Agent World descriptive: it reuses the existing compact, path-free workspace projection to make managed project zones understandable without exposing local filesystem paths or adding mutation authority.
+Paired Agency Agent milestones are complete through AW19. AW20 keeps Agent World descriptive: it reuses the existing compact, path-free workspace projection to make managed project zones understandable without exposing local filesystem paths or adding mutation authority.
 
 ## Roadmap
 
@@ -309,7 +301,7 @@ AW16  Operator Cleanup & Guide (Agency Agent) ✅
 AW17  Evidence & Trace navigation             ✅
 AW18  Friendly capability labels              ✅
 AW19  Project Overview navigation              ✅
-AW20  Governed Workspace UX                    🚧
+AW20  Governed Workspace UX                    ✅
 ```
 
 ## Upstream relationship
