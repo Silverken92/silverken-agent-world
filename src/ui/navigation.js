@@ -27,13 +27,21 @@ export function governedNavigation(data, locale = 'en') {
   const actions = []
 
   const operatorUrl = safeHttpUrl(data?.x?.o)
+  const operatorThreadId = typeof data?.x?.i === 'string' ? data.x.i : ''
+  const taskEvidenceTarget = operatorThreadId.startsWith('agency-agent:')
   if (operatorUrl) {
     actions.push({
       kind: 'operator',
-      label: fr ? 'Ouvrir dans Operator' : 'Open in Operator',
-      title: fr
-        ? 'Ouvrir la tâche dans l’interface autoritative Agency Agent'
-        : 'Open the task in the authoritative Agency Agent Operator UI',
+      label: taskEvidenceTarget
+        ? (fr ? 'Preuves & trace' : 'Evidence & trace')
+        : (fr ? 'Ouvrir dans Operator' : 'Open in Operator'),
+      title: taskEvidenceTarget
+        ? (fr
+            ? 'Ouvrir la fiche Preuves & trace dans l’interface autoritative Agency Agent'
+            : 'Open the Evidence & trace drilldown in the authoritative Agency Agent Operator UI')
+        : (fr
+            ? 'Ouvrir dans l’interface autoritative Agency Agent'
+            : 'Open in the authoritative Agency Agent Operator UI'),
       url: operatorUrl,
     })
   }
