@@ -54,6 +54,12 @@ test('French catalog covers the SilverKen governed-view vocabulary', () => {
   assert.equal(t('release', 'fr'), 'Livraison')
   assert.equal(t('openProjectOperator', 'fr'), 'Ouvrir le projet dans Operator')
   assert.equal(t('openProjectOperator', 'en'), 'Open project in Operator')
+  assert.equal(t('managedWorkspace', 'fr'), 'Workspace géré')
+  assert.equal(t('managedWorkspace', 'en'), 'Managed workspace')
+  assert.equal(t('workspaceGitState', 'fr'), 'État Git')
+  assert.equal(t('workspaceClean', 'fr'), 'Propre')
+  assert.equal(t('workspaceModified', 'fr'), 'Modifié')
+  assert.equal(t('workspaceCheckRequired', 'fr'), 'À vérifier')
 })
 
 test('Agency Agent operational badges can be rendered in French without changing evidence semantics', () => {
