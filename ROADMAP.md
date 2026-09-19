@@ -494,7 +494,42 @@ Real Windows evidence confirmed that the **SilverKen Platform** project sidebar 
 
 AW19 therefore meets its project-navigation exit criteria.
 
-## After AW19
+## AW20 — Governed Workspace UX 🚧
+
+Goal: make Agency Agent-backed project zones look intentionally governed instead of looking broken because absolute local paths are deliberately excluded from Agent World.
+
+Scope:
+
+- derive one managed-workspace summary from the existing compact AW12 `w` projection already present on Agency Agent threads;
+- replace misleading `folder unknown` copy with **Managed workspace / Workspace géré**;
+- show only repository, branch, clean/modified state, validity and short HEAD;
+- hide local-only **New session**, **Explorer/Finder** and **Copy path** controls for managed Agency Agent projects instead of leaving them disabled;
+- keep those local controls unchanged for real local harness projects;
+- keep **Open project in Operator / Ouvrir le projet dans Operator** and **Hide project / Masquer le projet** available;
+- preserve the existing anti-leak boundary: no absolute paths, write scopes, command grants or credentials enter the Agent World project sidebar;
+- no new project mutation, execution, approval or capability authority.
+
+AW20 exit criteria:
+
+```text
+managed Agency Agent workspace detected from compact projection  🚧
+folder unknown removed for governed projects                     🚧
+repository / branch / Git state / validity / short HEAD shown    🚧
+local-only controls hidden for governed projects                 🚧
+local harness project controls unchanged                         🚧
+FR/EN workspace copy                                             🚧
+anti-leak tests                                                   🚧
+Agent World Quality green                                        🚧
+real Windows project-sidebar smoke                               NOT RUN
+```
+
+Current AW20 branch:
+
+```text
+feat/aw20-governed-workspace-sidebar
+```
+
+## After AW20
 
 Candidate future work, not pre-approved:
 
