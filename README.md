@@ -8,8 +8,7 @@ This repository is a fork of **[Station-Sciences/bot-crossing](https://github.co
 
 ## Status
 
-**Latest completed milestone: AW18 — Friendly capability labels**  
-**Current product slice: AW19 — Project Overview navigation (in progress)**
+**Latest completed milestone: AW19 — Project Overview navigation**
 
 | Capability | Status |
 | --- | --- |
@@ -38,7 +37,7 @@ This repository is a fork of **[Station-Sciences/bot-crossing](https://github.co
 | Operator cleanup + FR/EN guide | ✅ Agency Agent AW16 |
 | Agent World → Operator Evidence & Trace navigation | ✅ AW17 CI + Windows validated |
 | Plain-language AgentProfile capability labels | ✅ AW18 CI + Windows validated |
-| Project zone → Operator Overview navigation | 🚧 AW19 in progress |
+| Project zone → Operator Overview navigation | ✅ AW19 CI + Windows validated |
 
 ## Product model
 
@@ -307,7 +306,7 @@ AW15C Live Multi-Agent Team Visualization     ✅
 AW16  Operator Cleanup & Guide (Agency Agent) ✅
 AW17  Evidence & Trace navigation             ✅
 AW18  Friendly capability labels              ✅
-AW19  Project Overview navigation              🚧
+AW19  Project Overview navigation              ✅
 ```
 
 ## Upstream relationship
