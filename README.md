@@ -8,7 +8,8 @@ This repository is a fork of **[Station-Sciences/bot-crossing](https://github.co
 
 ## Status
 
-**Latest completed milestone: AW19 — Project Overview navigation**
+**Latest completed milestone: AW19 — Project Overview navigation**  
+**Current product slice: AW20 — Governed Workspace UX (in progress)**
 
 | Capability | Status |
 | --- | --- |
@@ -38,6 +39,7 @@ This repository is a fork of **[Station-Sciences/bot-crossing](https://github.co
 | Agent World → Operator Evidence & Trace navigation | ✅ AW17 CI + Windows validated |
 | Plain-language AgentProfile capability labels | ✅ AW18 CI + Windows validated |
 | Project zone → Operator Overview navigation | ✅ AW19 CI + Windows validated |
+| Governed workspace sidebar | 🚧 AW20 in progress |
 
 ## Product model
 
@@ -265,21 +267,21 @@ npm run build
 Latest completed Agent World milestone on `main`:
 
 ```text
-AW18
-cd21bf87d71e052e562a78d0ea95c5549efb0c07
+AW19
+5f8014eb4f70aafb49c0d81e63886d575e3961fd
 ```
 
-AW18 validation recorded:
+AW19 validation recorded:
 
 ```text
-Agent World Quality #96      ✅
+Agent World Quality #101     ✅
 runtime dependency audit     ✅
 tests                        ✅
 production build             ✅
-real Windows capability-label smoke ✅
+real Windows project Overview navigation smoke ✅
 ```
 
-Paired Agency Agent milestones are complete through AW18. AW19 keeps Agent World descriptive: project zones may navigate to the authenticated Operator Overview, but no project mutation or additional sensitive data is added to the 3D payload.
+Paired Agency Agent milestones are complete through AW19. AW20 continues to keep Agent World descriptive: it reuses the existing compact, path-free workspace projection to make managed project zones understandable without exposing local filesystem paths or adding mutation authority.
 
 ## Roadmap
 
@@ -307,6 +309,7 @@ AW16  Operator Cleanup & Guide (Agency Agent) ✅
 AW17  Evidence & Trace navigation             ✅
 AW18  Friendly capability labels              ✅
 AW19  Project Overview navigation              ✅
+AW20  Governed Workspace UX                    🚧
 ```
 
 ## Upstream relationship
