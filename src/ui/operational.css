@@ -139,3 +139,11 @@
   font-family: inherit;
   font-weight: 650;
 }
+
+
+/* AW20: author-level .btn/.pair display rules override the browser's hidden default.
+   Keep governed local-only actions truly absent, not merely disabled. */
+.side .project-actions > [hidden],
+.side .project-actions .pair[hidden] {
+  display: none !important;
+}
