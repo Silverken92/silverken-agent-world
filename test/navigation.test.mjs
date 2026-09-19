@@ -31,22 +31,39 @@ test('Operator navigation rejects credential-bearing base URLs', (t) => {
   assert.equal(operatorTaskUrl('project', 'task'), '')
 })
 
-test('governed navigation builds bilingual read-only Operator and GitHub links', () => {
+test('governed navigation labels Agency Agent task drilldown as Evidence and trace', () => {
   const data = {
-    x: { o: 'http://127.0.0.1:8787/ui?project=p&task=t&view=tasks' },
+    x: {
+      o: 'http://127.0.0.1:8787/ui?project=p&task=t&view=tasks',
+      i: 'agency-agent:p:t',
+    },
     h: { q: 'Silverken92/silverken-agent-world', n: 12 },
   }
 
   const fr = governedNavigation(data, 'fr')
   assert.deepEqual(fr.map((item) => item.kind), ['operator', 'pr', 'repo'])
-  assert.equal(fr[0].label, 'Ouvrir dans Operator')
+  assert.equal(fr[0].label, 'Preuves & trace')
+  assert.match(fr[0].title, /Preuves & trace/)
   assert.equal(fr[1].label, 'Ouvrir la PR #12')
   assert.equal(fr[2].label, 'Ouvrir le dépôt')
   assert.equal(fr[1].url, 'https://github.com/Silverken92/silverken-agent-world/pull/12')
 
   const en = governedNavigation(data, 'en')
-  assert.equal(en[0].label, 'Open in Operator')
+  assert.equal(en[0].label, 'Evidence & trace')
+  assert.match(en[0].title, /Evidence & trace/)
   assert.equal(en[1].label, 'Open PR #12')
+})
+
+test('profile navigation keeps the generic Operator label', () => {
+  const data = {
+    x: {
+      o: 'http://127.0.0.1:8787/ui?project=p&view=agents',
+      i: 'agency-agent-profile:p:agent',
+    },
+  }
+
+  assert.equal(governedNavigation(data, 'fr')[0].label, 'Ouvrir dans Operator')
+  assert.equal(governedNavigation(data, 'en')[0].label, 'Open in Operator')
 })
 
 test('navigation URL guards reject executable schemes and malformed repositories', () => {
