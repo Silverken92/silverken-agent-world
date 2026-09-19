@@ -439,11 +439,33 @@ Real Windows evidence confirmed that task cards expose **Preuves & trace**, the 
 
 AW17 therefore meets its navigation exit criteria.
 
-## After AW17
+## AW18 — Friendly Agent Setup & Capability Labels 🚧
+
+Goal: make agent permissions understandable to non-specialist users while keeping all capability mutation inside authoritative Agency Agent Operator.
+
+Scope:
+
+- Agency Agent AW18-B owns guided AgentProfile authoring with plain-language Read / Write / Commands controls;
+- Agent World replaces compact shorthand such as `L✓ É✓ Cmd—` / `R✓ W✓ Cmd—` with full FR/EN labels;
+- the existing compact capability projection remains unchanged: read, effective write, effective commands, policy-valid and tool-count only;
+- raw tools, command prefixes, write globs and local paths remain excluded from Agent World;
+- Agent World gains no capability-edit, enable/disable, task assignment or execution authority.
+
+AW18 Agent World exit criteria:
+
+```text
+plain-language FR capability label                              🚧
+plain-language EN capability label                              🚧
+existing anti-leak capability projection preserved             🚧
+tests updated                                                   🚧
+Agent World Quality green                                       🚧
+real Windows AgentProfile visual smoke                          NOT RUN
+```
+
+## After AW18
 
 Candidate future work, not pre-approved:
 
-- agent templates/presets and richer capability policy authoring;
 - optional desktop packaging / tray launcher;
 - upstream Bot Crossing sync automation;
 - cleanup/automation for stale development branches.
