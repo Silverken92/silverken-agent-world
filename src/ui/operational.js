@@ -244,8 +244,8 @@ export function operationalBadges(data, locale = 'en') {
     const toolCount = Math.max(0, Number(data.k[4]) || 0)
     const check = (value) => value ? '✓' : '—'
     const label = fr
-      ? `Capacités · L${check(read)} É${check(write)} Cmd${check(commands)}`
-      : `Capabilities · R${check(read)} W${check(write)} Cmd${check(commands)}`
+      ? `Capacités · Lecture ${check(read)} · Écriture ${check(write)} · Commandes ${check(commands)}`
+      : `Capabilities · Read ${check(read)} · Write ${check(write)} · Commands ${check(commands)}`
     const detail = [
       fr ? `Lecture · ${read ? 'Oui' : 'Non'}` : `Read · ${read ? 'Yes' : 'No'}`,
       fr ? `Écriture effective · ${write ? 'Oui' : 'Non'}` : `Effective write · ${write ? 'Yes' : 'No'}`,
