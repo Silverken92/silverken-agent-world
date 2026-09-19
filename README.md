@@ -8,8 +8,7 @@ This repository is a fork of **[Station-Sciences/bot-crossing](https://github.co
 
 ## Status
 
-**Latest completed milestone: AW17 — Evidence & Trace navigation**  
-**Current product slice: AW18 — Friendly capability labels (in progress)**
+**Latest completed milestone: AW18 — Friendly capability labels**
 
 | Capability | Status |
 | --- | --- |
@@ -37,7 +36,7 @@ This repository is a fork of **[Station-Sciences/bot-crossing](https://github.co
 | Live SilverFlow team lifecycle visualization | ✅ AW15C real-machine smoke |
 | Operator cleanup + FR/EN guide | ✅ Agency Agent AW16 |
 | Agent World → Operator Evidence & Trace navigation | ✅ AW17 CI + Windows validated |
-| Plain-language AgentProfile capability labels | 🚧 AW18 in progress |
+| Plain-language AgentProfile capability labels | ✅ AW18 CI + Windows validated |
 
 ## Product model
 
@@ -305,7 +304,7 @@ AW14B Compact Capability Visualization        ✅
 AW15C Live Multi-Agent Team Visualization     ✅
 AW16  Operator Cleanup & Guide (Agency Agent) ✅
 AW17  Evidence & Trace navigation             ✅
-AW18  Friendly capability labels              🚧
+AW18  Friendly capability labels              ✅
 ```
 
 ## Upstream relationship
