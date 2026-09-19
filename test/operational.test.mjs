@@ -1,7 +1,8 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
+import { readFileSync } from 'node:fs'
 
-import { decodeOperationalModel, operationalBadges } from '../src/ui/operational.js'
+import { decodeOperationalModel, operationalBadges, workspaceSummary } from '../src/ui/operational.js'
 
 function encoded(value) {
   return `SKOPS:${encodeURIComponent(JSON.stringify(value))}`
@@ -70,4 +71,45 @@ test('AW18 capability badge is explicitly marked for readable wrapping', () => {
   assert.equal(badge.label, 'Capacités · Lecture ✓ · Écriture ✓ · Commandes —')
   assert.equal(badge.tone, 'agent')
   assert.equal(badge.kind, 'capabilities')
+})
+
+
+test('AW20 workspace summary stays path-free and project-safe', () => {
+  const summary = workspaceSummary(encoded({
+    w: ['silverken-platform', 'main', true, true, '1234567890abcdef1234567890abcdef12345678'],
+  }))
+
+  assert.deepEqual(summary, {
+    managed: true,
+    repository: 'silverken-platform',
+    branch: 'main',
+    clean: true,
+    valid: true,
+    head: '1234567890abcdef1234567890abcdef12345678',
+  })
+  assert.equal(JSON.stringify(summary).includes('F:\\SilverKen'), false)
+})
+
+test('AW20 workspace summary preserves dirty and invalid states without inventing a path', () => {
+  assert.deepEqual(
+    workspaceSummary({ w: ['silverken-platform', 'feature/demo', false, false, 'abcdef123456'] }),
+    {
+      managed: true,
+      repository: 'silverken-platform',
+      branch: 'feature/demo',
+      clean: false,
+      valid: false,
+      head: 'abcdef123456',
+    }
+  )
+  assert.equal(workspaceSummary({ w: ['', 'main', true, true, 'abc'] }), null)
+  assert.equal(workspaceSummary('not-operational'), null)
+})
+
+
+test('AW20 governed project actions hidden state wins over base button display rules', () => {
+  const css = readFileSync(new URL('../src/ui/operational.css', import.meta.url), 'utf8')
+  assert.match(css, /\.side \.project-actions > \[hidden\]/)
+  assert.match(css, /\.side \.project-actions \.pair\[hidden\]/)
+  assert.match(css, /display:\s*none\s*!important/)
 })

@@ -12,6 +12,22 @@ export function decodeOperationalModel(value) {
   }
 }
 
+export function workspaceSummary(value) {
+  const data = typeof value === 'string' ? decodeOperationalModel(value) : value
+  const workspace = data?.w
+  if (!Array.isArray(workspace) || workspace.length < 4) return null
+  const repository = String(workspace[0] || '').trim()
+  if (!repository) return null
+  return {
+    managed: true,
+    repository,
+    branch: String(workspace[1] || '').trim(),
+    clean: workspace[2] === true ? true : workspace[2] === false ? false : null,
+    valid: workspace[3] === true,
+    head: String(workspace[4] || '').trim(),
+  }
+}
+
 function compactNumber(value) {
   const number = Number(value)
   if (!Number.isFinite(number) || number <= 0) return ''

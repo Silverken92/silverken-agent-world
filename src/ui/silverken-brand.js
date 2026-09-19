@@ -82,6 +82,42 @@ function ensureLanguageControl(root) {
   select.setAttribute('aria-label', t('language', currentLocale))
 }
 
+function localizeManagedWorkspace(root) {
+  const path = root.querySelector('.side .path[data-managed-workspace="true"]')
+  if (path) path.textContent = t('managedWorkspace', currentLocale)
+
+  const workspace = root.querySelector('.managed-workspace')
+  if (!workspace || workspace.hidden) return
+
+  workspace.setAttribute('aria-label', t('managedWorkspace', currentLocale))
+  const title = workspace.querySelector('.workspace-title')
+  const repositoryLabel = workspace.querySelector('.workspace-repository-label')
+  const branchLabel = workspace.querySelector('.workspace-branch-label')
+  const stateLabel = workspace.querySelector('.workspace-state-label')
+  const headLabel = workspace.querySelector('.workspace-head-label')
+  if (title) title.textContent = t('managedWorkspace', currentLocale)
+  if (repositoryLabel) repositoryLabel.textContent = t('workspaceRepository', currentLocale)
+  if (branchLabel) branchLabel.textContent = t('workspaceBranch', currentLocale)
+  if (stateLabel) stateLabel.textContent = t('workspaceGitState', currentLocale)
+  if (headLabel) headLabel.textContent = 'HEAD'
+
+  const state = workspace.querySelector('.workspace-state')
+  if (state) {
+    state.textContent = workspace.dataset.clean === 'true'
+      ? t('workspaceClean', currentLocale)
+      : workspace.dataset.clean === 'false'
+        ? t('workspaceModified', currentLocale)
+        : t('workspaceUnknown', currentLocale)
+  }
+
+  const validity = workspace.querySelector('.workspace-validity')
+  if (validity) {
+    validity.textContent = workspace.dataset.valid === 'true'
+      ? t('workspaceValid', currentLocale)
+      : t('workspaceCheckRequired', currentLocale)
+  }
+}
+
 function renderNavigation(card, data) {
   const actions = governedNavigation(data, currentLocale)
   let nav = card.querySelector('.sk-nav')
@@ -268,6 +304,7 @@ function applyBrand(root = document) {
   localizeStaticText(root.querySelector('.help .cols'), currentLocale)
   localizeStaticText(root.querySelector('.help .legend-row')?.parentElement, currentLocale)
   localizeRelativeTimes(root, currentLocale)
+  localizeManagedWorkspace(root)
   applyOperationalBadges(root)
 }
 

@@ -18,7 +18,7 @@ import {
   revealFolder,
 } from './game/api.js'
 import { hideProject, hiddenCatalog, unhideProject } from './game/hidden-projects.js'
-import { decodeOperationalModel } from './ui/operational.js'
+import { decodeOperationalModel, workspaceSummary } from './ui/operational.js'
 import { operatorProjectOverviewUrl } from './ui/navigation.js'
 
 /**
@@ -394,6 +394,18 @@ function pathForProject(name) {
   return best
 }
 
+function workspaceForProject(name) {
+  const candidates = []
+  for (const thread of colony.threads.values()) {
+    if (thread.project !== name) continue
+    const workspace = workspaceSummary(thread.model)
+    if (workspace) candidates.push(workspace)
+  }
+  if (!candidates.length) return null
+  return candidates.find((item) => item.valid) || candidates[0]
+}
+
+
 /** Push the open zone's current contents at the sidebar. Closes it if the zone is gone. */
 function syncProject() {
   const hidden = hiddenCatalog(state.hiddenProjects || [], threads)
@@ -428,6 +440,7 @@ function syncProject() {
     name: plot.name,
     accent: plot.accent,
     path: pathForProject(plot.name),
+    workspace: workspaceForProject(plot.name),
     threads: list,
     selectedId,
   })
