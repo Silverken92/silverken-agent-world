@@ -55,3 +55,87 @@
   text-overflow: clip;
   flex-basis: 100%;
 }
+
+
+/* AW20 — governed workspace summary in the project sidebar. */
+.side .managed-workspace {
+  margin: 0 15px 12px;
+  padding: 11px;
+  border: 1px solid rgba(90, 217, 208, 0.16);
+  border-radius: 10px;
+  background: rgba(90, 217, 208, 0.045);
+}
+
+.side .managed-workspace[hidden] {
+  display: none;
+}
+
+.side .managed-workspace-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 9px;
+}
+
+.side .workspace-title {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: #a9e6df;
+}
+
+.side .workspace-validity {
+  padding: 2px 7px;
+  border-radius: 999px;
+  font-size: 9.5px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.side .workspace-validity.success {
+  color: #82e4b5;
+  background: rgba(85, 214, 158, 0.09);
+  border: 1px solid rgba(85, 214, 158, 0.18);
+}
+
+.side .workspace-validity.warning {
+  color: #f1cf82;
+  background: rgba(241, 200, 107, 0.08);
+  border: 1px solid rgba(241, 200, 107, 0.18);
+}
+
+.side .workspace-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0;
+}
+
+.side .workspace-grid > div {
+  min-width: 0;
+}
+
+.side .workspace-grid dt {
+  margin: 0 0 2px;
+  color: var(--dim);
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.045em;
+}
+
+.side .workspace-grid dd {
+  margin: 0;
+  min-width: 0;
+  color: var(--text);
+  font-size: 11px;
+  font-weight: 650;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.side .path[data-managed-workspace='true'] {
+  color: #9edbd8;
+  font-family: inherit;
+  font-weight: 650;
+}
