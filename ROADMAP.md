@@ -466,7 +466,31 @@ Real Windows evidence confirmed that the full **Lecture / Écriture / Commandes*
 
 AW18 therefore meets its capability-label exit criteria.
 
-## After AW18
+## AW19 — Project Overview Navigation 🚧
+
+Goal: connect a project zone in Agent World directly to the new authoritative Operator **Overview / Vue d’ensemble** without exposing additional project data.
+
+Scope:
+
+- derive a project-level Operator link from the existing safe Agency Agent task/profile navigation data;
+- remove any task-specific context before navigation and force `view=overview`;
+- reject malformed, credential-bearing and non-HTTP(S) Operator URLs;
+- expose **Open project in Operator / Ouvrir le projet dans Operator** in the project sidebar only when a safe Agency Agent link exists;
+- keep task **Preuves & trace** and AgentProfile **Ouvrir dans Operator** navigation unchanged;
+- no project mutation, task execution, approval or capability authority is added.
+
+AW19 Agent World exit criteria:
+
+```text
+safe project overview URL derivation                            🚧
+project sidebar Operator button                                🚧
+FR/EN project navigation copy                                  🚧
+task/profile navigation unchanged                              🚧
+tests/build green                                               🚧
+real Windows project-zone navigation smoke                      NOT RUN
+```
+
+## After AW19
 
 Candidate future work, not pre-approved:
 
