@@ -61,3 +61,13 @@ test('operational badges make failures visually explicit', () => {
   assert.equal(badges.find((item) => item.label === 'SilverGuard · FAIL · 2 block').tone, 'danger')
   assert.equal(badges.find((item) => item.label === 'Release · BLOCKED').tone, 'danger')
 })
+
+
+test('AW18 capability badge is explicitly marked for readable wrapping', () => {
+  const fr = operationalBadges({ k: [true, true, false, true, 5] }, 'fr')
+  const badge = fr.find((item) => item.kind === 'capabilities')
+
+  assert.equal(badge.label, 'Capacités · Lecture ✓ · Écriture ✓ · Commandes —')
+  assert.equal(badge.tone, 'agent')
+  assert.equal(badge.kind, 'capabilities')
+})

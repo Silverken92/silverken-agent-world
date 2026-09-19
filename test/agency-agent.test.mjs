@@ -535,12 +535,12 @@ test('AW14B capability projection is descriptive and strips raw authority', () =
   assert.deepEqual(decoded.k, [true, true, false, true, 5])
   assert.ok(
     operationalBadges(decoded, 'fr').some(
-      (badge) => badge.label === 'Capacités · L✓ É✓ Cmd—' && badge.tone === 'agent'
+      (badge) => badge.label === 'Capacités · Lecture ✓ · Écriture ✓ · Commandes —' && badge.tone === 'agent'
     )
   )
   assert.ok(
     operationalBadges(decoded, 'en').some(
-      (badge) => badge.label === 'Capabilities · R✓ W✓ Cmd—' && badge.tone === 'agent'
+      (badge) => badge.label === 'Capabilities · Read ✓ · Write ✓ · Commands —' && badge.tone === 'agent'
     )
   )
 })

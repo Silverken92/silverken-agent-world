@@ -165,9 +165,9 @@ export function operationalBadges(data, locale = 'en') {
   const lang = normalizeLocale(locale)
   const fr = lang === 'fr'
   const badges = []
-  const add = (label, tone = 'neutral', title = '') => {
+  const add = (label, tone = 'neutral', title = '', kind = '') => {
     if (!label) return
-    badges.push({ label, tone, title })
+    badges.push({ label, tone, title, kind })
   }
 
   if (data.m) add(String(data.m), 'model', fr ? 'Modèle d’exécution Agency Agent' : 'Agency Agent execution model')
@@ -244,8 +244,8 @@ export function operationalBadges(data, locale = 'en') {
     const toolCount = Math.max(0, Number(data.k[4]) || 0)
     const check = (value) => value ? '✓' : '—'
     const label = fr
-      ? `Capacités · L${check(read)} É${check(write)} Cmd${check(commands)}`
-      : `Capabilities · R${check(read)} W${check(write)} Cmd${check(commands)}`
+      ? `Capacités · Lecture ${check(read)} · Écriture ${check(write)} · Commandes ${check(commands)}`
+      : `Capabilities · Read ${check(read)} · Write ${check(write)} · Commands ${check(commands)}`
     const detail = [
       fr ? `Lecture · ${read ? 'Oui' : 'Non'}` : `Read · ${read ? 'Yes' : 'No'}`,
       fr ? `Écriture effective · ${write ? 'Oui' : 'Non'}` : `Effective write · ${write ? 'Yes' : 'No'}`,
@@ -253,7 +253,7 @@ export function operationalBadges(data, locale = 'en') {
       toolCount ? `${fr ? 'Outils' : 'Tools'} · ${toolCount}` : '',
       fr ? `Politique · ${policyValid ? 'valide' : 'à corriger'}` : `Policy · ${policyValid ? 'valid' : 'needs changes'}`,
     ].filter(Boolean).join(' · ')
-    add(label, policyValid ? 'agent' : 'danger', detail)
+    add(label, policyValid ? 'agent' : 'danger', detail, 'capabilities')
   }
 
   if (Array.isArray(data.u) && data.u.length >= 2) {
