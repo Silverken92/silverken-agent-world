@@ -8,8 +8,7 @@ This repository is a fork of **[Station-Sciences/bot-crossing](https://github.co
 
 ## Status
 
-**Latest completed milestone: AW15C — Live Multi-Agent Team Visualization**  
-**Current product slice: AW17 — Evidence & Trace navigation (in progress)**
+**Latest completed milestone: AW17 — Evidence & Trace navigation**
 
 | Capability | Status |
 | --- | --- |
@@ -36,7 +35,7 @@ This repository is a fork of **[Station-Sciences/bot-crossing](https://github.co
 | Compact AgentProfile capability visualization | ✅ AW14B real-machine smoke |
 | Live SilverFlow team lifecycle visualization | ✅ AW15C real-machine smoke |
 | Operator cleanup + FR/EN guide | ✅ Agency Agent AW16 |
-| Agent World → Operator Evidence & Trace navigation | 🚧 AW17 in progress |
+| Agent World → Operator Evidence & Trace navigation | ✅ AW17 CI + Windows validated |
 
 ## Product model
 
@@ -278,7 +277,7 @@ production build            ✅
 real Windows live team smoke ✅
 ```
 
-Paired Agency Agent milestones are also complete through AW16 on `main`. AW17 is intentionally split across the two repositories: Operator owns the detailed Evidence & Trace view; Agent World exposes only safe navigation to that authoritative surface and keeps detailed evidence out of the 3D payload.
+Paired Agency Agent milestones are complete through AW17. Operator owns the detailed Evidence & Trace view; Agent World exposes only safe navigation to that authoritative surface and keeps detailed evidence out of the 3D payload.
 
 ## Roadmap
 
@@ -303,7 +302,7 @@ AW13  Governed Execution Visualization        ✅
 AW14B Compact Capability Visualization        ✅
 AW15C Live Multi-Agent Team Visualization     ✅
 AW16  Operator Cleanup & Guide (Agency Agent) ✅
-AW17  Evidence & Trace navigation             🚧
+AW17  Evidence & Trace navigation             ✅
 ```
 
 ## Upstream relationship
