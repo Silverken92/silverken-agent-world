@@ -433,7 +433,7 @@ Agent World Quality #84                                         ✅
 tests 98/98                                                     ✅
 production build                                                ✅
 real Windows navigation smoke                                   ✅
-\`\`\`
+```
 
 Real Windows evidence confirmed that task cards expose **Preuves & trace**, the deep link reaches the authoritative Operator Evidence & Trace panel, and AgentProfile cards retain **Ouvrir dans Operator**. No detailed evidence or execution authority was added to Agent World.
 
