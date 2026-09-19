@@ -494,7 +494,7 @@ Real Windows evidence confirmed that the **SilverKen Platform** project sidebar 
 
 AW19 therefore meets its project-navigation exit criteria.
 
-## AW20 — Governed Workspace UX 🚧
+## AW20 — Governed Workspace UX ✅
 
 Goal: make Agency Agent-backed project zones look intentionally governed instead of looking broken because absolute local paths are deliberately excluded from Agent World.
 
@@ -512,22 +512,22 @@ Scope:
 AW20 exit criteria:
 
 ```text
-managed Agency Agent workspace detected from compact projection  🚧
-folder unknown removed for governed projects                     🚧
-repository / branch / Git state / validity / short HEAD shown    🚧
-local-only controls hidden for governed projects                 🚧
-local harness project controls unchanged                         🚧
-FR/EN workspace copy                                             🚧
-anti-leak tests                                                   🚧
-Agent World Quality green                                        🚧
-real Windows project-sidebar smoke                               NOT RUN
+managed Agency Agent workspace detected from compact projection  ✅
+folder unknown removed for governed projects                     ✅
+repository / branch / Git state / validity / short HEAD shown    ✅
+local-only controls hidden for governed projects                 ✅
+local harness project controls unchanged                         ✅
+FR/EN workspace copy                                             ✅
+anti-leak tests                                                   ✅
+Agent World Quality #104                                         ✅
+real Windows project-sidebar smoke                               ✅
 ```
 
-Current AW20 branch:
+Real Windows evidence confirmed that **SilverKen Platform** renders as **Workspace géré** with repository `silverken-platform`, branch `main`, clean Git state, valid binding and a short HEAD. The local-only **Nouvelle session**, **Explorer** and **Copier le chemin** controls are absent, while **Ouvrir le projet dans Operator** and **Masquer le projet** remain available.
 
-```text
-feat/aw20-governed-workspace-sidebar
-```
+The visual smoke also caught and closed a CSS cascade bug where hidden local-only actions were still rendered as disabled controls. A regression test now locks the corrected hiding behavior.
+
+AW20 therefore meets its governed-workspace UX exit criteria.
 
 ## After AW20
 
