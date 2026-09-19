@@ -1,5 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
+import { readFileSync } from 'node:fs'
 
 import { decodeOperationalModel, operationalBadges, workspaceSummary } from '../src/ui/operational.js'
 
@@ -103,4 +104,12 @@ test('AW20 workspace summary preserves dirty and invalid states without inventin
   )
   assert.equal(workspaceSummary({ w: ['', 'main', true, true, 'abc'] }), null)
   assert.equal(workspaceSummary('not-operational'), null)
+})
+
+
+test('AW20 governed project actions hidden state wins over base button display rules', () => {
+  const css = readFileSync(new URL('../src/ui/operational.css', import.meta.url), 'utf8')
+  assert.match(css, /\.side \.project-actions > \[hidden\]/)
+  assert.match(css, /\.side \.project-actions \.pair\[hidden\]/)
+  assert.match(css, /display:\s*none\s*!important/)
 })
