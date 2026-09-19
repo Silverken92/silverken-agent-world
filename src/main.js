@@ -394,6 +394,29 @@ function pathForProject(name) {
   return best
 }
 
+function workspaceForProject(name) {
+  const candidates = []
+  for (const thread of colony.threads.values()) {
+    if (thread.project !== name) continue
+    const data = decodeOperationalModel(thread.model)
+    const workspace = data?.w
+    if (!Array.isArray(workspace) || workspace.length < 4) continue
+    const repository = String(workspace[0] || '').trim()
+    if (!repository) continue
+    candidates.push({
+      managed: true,
+      repository,
+      branch: String(workspace[1] || '').trim(),
+      clean: workspace[2] === true ? true : workspace[2] === false ? false : null,
+      valid: workspace[3] === true,
+      head: String(workspace[4] || '').trim(),
+    })
+  }
+  if (!candidates.length) return null
+  return candidates.find((item) => item.valid) || candidates[0]
+}
+
+
 /** Push the open zone's current contents at the sidebar. Closes it if the zone is gone. */
 function syncProject() {
   const hidden = hiddenCatalog(state.hiddenProjects || [], threads)
@@ -428,6 +451,7 @@ function syncProject() {
     name: plot.name,
     accent: plot.accent,
     path: pathForProject(plot.name),
+    workspace: workspaceForProject(plot.name),
     threads: list,
     selectedId,
   })
