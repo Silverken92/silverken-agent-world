@@ -407,7 +407,7 @@ QA: Idle + SilverFlow TERMINÉE                             ✅
 
 AW15C therefore meets its exit criteria. Agent World now visualizes real SilverFlow handoffs and specialist lifecycle live while Agency Agent remains the sole execution authority.
 
-## AW17 — Evidence & Trace Navigation 🚧
+## AW17 — Evidence & Trace Navigation ✅
 
 Goal: make Agent World a clearer entry point into authoritative execution evidence without copying detailed evidence into the 3D surface.
 
@@ -424,14 +424,20 @@ Scope:
 AW17 Agent World exit criteria:
 
 ```text
-task cards identify authoritative Evidence & Trace navigation   🚧
-profile navigation remains generic Operator navigation          🚧
-FR/EN labels covered by regression tests                        🚧
-URL/token safety guards preserved                               🚧
-README synchronized through AW15C/AW16/AW17                    🚧
-Agent World Quality green                                       🚧
-real Windows navigation smoke                                   NOT RUN
-```
+task cards identify authoritative Evidence & Trace navigation   ✅
+profile navigation remains generic Operator navigation          ✅
+FR/EN labels covered by regression tests                        ✅
+URL/token safety guards preserved                               ✅
+README synchronized through AW15C/AW16/AW17                    ✅
+Agent World Quality #84                                         ✅
+tests 98/98                                                     ✅
+production build                                                ✅
+real Windows navigation smoke                                   ✅
+\`\`\`
+
+Real Windows evidence confirmed that task cards expose **Preuves & trace**, the deep link reaches the authoritative Operator Evidence & Trace panel, and AgentProfile cards retain **Ouvrir dans Operator**. No detailed evidence or execution authority was added to Agent World.
+
+AW17 therefore meets its navigation exit criteria.
 
 ## After AW17
 
