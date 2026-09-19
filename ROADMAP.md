@@ -407,13 +407,44 @@ QA: Idle + SilverFlow TERMINÉE                             ✅
 
 AW15C therefore meets its exit criteria. Agent World now visualizes real SilverFlow handoffs and specialist lifecycle live while Agency Agent remains the sole execution authority.
 
-## After AW13
+## AW17 — Evidence & Trace Navigation ✅
+
+Goal: make Agent World a clearer entry point into authoritative execution evidence without copying detailed evidence into the 3D surface.
+
+Scope:
+
+- Agency Agent AW17-B owns the structured **Evidence & Trace / Preuves & trace** drilldown;
+- Agency Agent task links already deep-link to `/ui?project=<project_id>&task=<task_id>&view=tasks`, where Operator opens the task evidence detail;
+- Agent World labels task navigation as **Evidence & trace / Preuves & trace** instead of the generic Operator label;
+- persistent AgentProfile cards keep the generic **Open in Operator / Ouvrir dans Operator** navigation;
+- existing HTTP(S), credential-bearing URL and GitHub-host guards remain unchanged;
+- detailed task evidence, execution-event metadata, approvals, security reports, local paths, command grants and credentials are not copied into the Agent World payload;
+- no execution, retry, approval or policy-edit authority is added.
+
+AW17 Agent World exit criteria:
+
+```text
+task cards identify authoritative Evidence & Trace navigation   ✅
+profile navigation remains generic Operator navigation          ✅
+FR/EN labels covered by regression tests                        ✅
+URL/token safety guards preserved                               ✅
+README synchronized through AW15C/AW16/AW17                    ✅
+Agent World Quality #84                                         ✅
+tests 98/98                                                     ✅
+production build                                                ✅
+real Windows navigation smoke                                   ✅
+```
+
+Real Windows evidence confirmed that task cards expose **Preuves & trace**, the deep link reaches the authoritative Operator Evidence & Trace panel, and AgentProfile cards retain **Ouvrir dans Operator**. No detailed evidence or execution authority was added to Agent World.
+
+AW17 therefore meets its navigation exit criteria.
+
+## After AW17
 
 Candidate future work, not pre-approved:
 
 - agent templates/presets and richer capability policy authoring;
 - optional desktop packaging / tray launcher;
-- richer evidence/log navigation;
 - upstream Bot Crossing sync automation;
 - cleanup/automation for stale development branches.
 

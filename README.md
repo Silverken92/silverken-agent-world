@@ -8,7 +8,7 @@ This repository is a fork of **[Station-Sciences/bot-crossing](https://github.co
 
 ## Status
 
-**Latest completed milestone: AW13 — Governed Execution Visualization**
+**Latest completed milestone: AW17 — Evidence & Trace navigation**
 
 | Capability | Status |
 | --- | --- |
@@ -32,6 +32,10 @@ This repository is a fork of **[Station-Sciences/bot-crossing](https://github.co
 | Path-free workspace status in Agent World | ✅ AW12 |
 | Governed execution lifecycle projection | ✅ AW13 |
 | Real RUNNING → SUCCEEDED visualization | ✅ AW13 real-machine smoke |
+| Compact AgentProfile capability visualization | ✅ AW14B real-machine smoke |
+| Live SilverFlow team lifecycle visualization | ✅ AW15C real-machine smoke |
+| Operator cleanup + FR/EN guide | ✅ Agency Agent AW16 |
+| Agent World → Operator Evidence & Trace navigation | ✅ AW17 CI + Windows validated |
 
 ## Product model
 
@@ -226,6 +230,8 @@ GET /api/v1/projects/{project_id}/agent-world
 
 The visualization receives only compact operational context required for the product: tasks, verification/activity summaries, governance state, governed-request lifecycle and a compact non-secret inventory of registered agents. Raw evidence bodies, bearer credentials and unrestricted policy state are not replicated.
 
+AW17 keeps that boundary intact: task cards may expose a **Preuves & trace / Evidence & trace** link, but the detailed evidence, execution events, approvals and review reports are loaded only inside authenticated Agency Agent Operator.
+
 ## Optional GitHub context
 
 For projects without a local checkout, map project names explicitly in the local configuration:
@@ -254,35 +260,24 @@ npm test
 npm run build
 ```
 
-AW13 Agent World merged to `main` at:
+Latest completed Agent World milestone on `main`:
 
 ```text
-6c306cc4c6c126ae54c18f16a4b4c95e481855f9
+AW15C
+b0d562e4d03348f710cb5f82815ad912b631c0ff
 ```
 
-Post-merge quality gate:
+AW15C validation recorded:
 
 ```text
-runtime dependency audit ✅
-tests                    ✅
-production build         ✅
+Agent World Quality #82     ✅
+runtime dependency audit    ✅
+tests                       ✅
+production build            ✅
+real Windows live team smoke ✅
 ```
 
-Agency Agent AW13 merged to `main` at:
-
-```text
-69d371557ea0fdf3a1de5717d933aa9211ea6abf
-```
-
-Its Repository Quality gate is green; the real Windows AW13 preflight/run smoke also completed successfully.
-
-Agency Agent AW10 merged to its `main` at:
-
-```text
-4ab0deb2d513a99a78abe71c3a4d01b659c02b19
-```
-
-Its Repository Quality, PostgreSQL migration/backup/restore and container production smoke are green.
+Paired Agency Agent milestones are complete through AW17. Operator owns the detailed Evidence & Trace view; Agent World exposes only safe navigation to that authoritative surface and keeps detailed evidence out of the 3D payload.
 
 ## Roadmap
 
@@ -302,8 +297,12 @@ AW9   Governed request inbox/lifecycle        ✅
 AW9.1 Operator UX + FR/EN                     ✅
 AW10  Persistent Agent Registry + 3D identity ✅
 AW11  Agent Mission Topology                  ✅
-AW12  Project Workspace Binding                ✅
-AW13  Governed Execution Visualization          ✅
+AW12  Project Workspace Binding               ✅
+AW13  Governed Execution Visualization        ✅
+AW14B Compact Capability Visualization        ✅
+AW15C Live Multi-Agent Team Visualization     ✅
+AW16  Operator Cleanup & Guide (Agency Agent) ✅
+AW17  Evidence & Trace navigation             ✅
 ```
 
 ## Upstream relationship
