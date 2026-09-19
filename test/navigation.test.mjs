@@ -2,7 +2,7 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 
 import { operatorTaskUrl } from '../server/harnesses/agency-agent.mjs'
-import { governedNavigation, githubRepoUrl, safeHttpUrl } from '../src/ui/navigation.js'
+import { governedNavigation, githubRepoUrl, operatorProjectOverviewUrl, safeHttpUrl } from '../src/ui/navigation.js'
 
 function preserveUrl(t) {
   const previous = process.env.AGENCY_AGENT_URL
@@ -77,4 +77,20 @@ test('navigation URL guards reject executable schemes and malformed repositories
     h: { q: '../escape', n: 99 },
   }, 'fr')
   assert.deepEqual(actions, [])
+})
+
+
+test('project Operator navigation drops task context and targets overview', () => {
+  const url = operatorProjectOverviewUrl(
+    'http://127.0.0.1:8787/ui?project=prj+one&task=task%2Fone&view=tasks',
+  )
+  assert.equal(
+    url,
+    'http://127.0.0.1:8787/ui?project=prj+one&view=overview',
+  )
+})
+
+test('project Operator navigation keeps URL guards', () => {
+  assert.equal(operatorProjectOverviewUrl('javascript:alert(1)'), '')
+  assert.equal(operatorProjectOverviewUrl('http://user:pass@127.0.0.1:8787/ui?project=p'), '')
 })
