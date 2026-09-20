@@ -34,6 +34,17 @@ function resolveInDist(pathname) {
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, 'http://localhost')
 
+  if (url.pathname === '/healthz') {
+    const body = JSON.stringify({ status: 'ok', service: 'silverken-agent-world' })
+    res.writeHead(200, {
+      'Content-Type': 'application/json; charset=utf-8',
+      'Content-Length': Buffer.byteLength(body),
+      'Cache-Control': 'no-store',
+    })
+    res.end(body)
+    return
+  }
+
   if (url.pathname === '/api/governed-action') {
     return governedActionHandler(req, res)
   }

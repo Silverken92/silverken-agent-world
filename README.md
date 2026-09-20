@@ -8,7 +8,7 @@ This repository is a fork of **[Station-Sciences/bot-crossing](https://github.co
 
 ## Status
 
-**Latest completed milestone: AW20 — Governed Workspace UX**
+**Latest completed milestone: AW21 — Windows Desktop / Tray Launcher**
 
 | Capability | Status |
 | --- | --- |
@@ -39,6 +39,7 @@ This repository is a fork of **[Station-Sciences/bot-crossing](https://github.co
 | Plain-language AgentProfile capability labels | ✅ AW18 CI + Windows validated |
 | Project zone → Operator Overview navigation | ✅ AW19 CI + Windows validated |
 | Governed workspace sidebar | ✅ AW20 CI + Windows validated |
+| Windows desktop / tray launcher | ✅ AW21 CI + Windows validated |
 
 ## Product model
 
@@ -197,6 +198,27 @@ $env:AGENCY_AGENT_TOKEN="aa_your_token_here"
 npm run dev
 ```
 
+
+### Optional Windows desktop launcher
+
+AW21 adds an optional native Windows notification-area launcher around the existing AW8 local launcher. It keeps Agent World in the browser and does not add Electron or another application runtime.
+
+Install the Start Menu shortcut once:
+
+```powershell
+npm run desktop:install
+```
+
+Or launch the tray directly from the repository:
+
+```powershell
+npm run desktop
+```
+
+The tray opens Agent World on localhost and provides **Open**, **Restart**, **Logs**, and **Stop and exit** actions. It never embeds provider credentials and only stops the process tree that it owns.
+
+See [`docs/windows-desktop.md`](docs/windows-desktop.md).
+
 ## French / English UI
 
 Agent World exposes a compact **FR / EN** selector. Agency Agent Operator also has a persistent **FR / EN** toggle with translated business labels, clearer governed-request cards and integrated lifecycle forms.
@@ -263,17 +285,21 @@ npm test
 npm run build
 ```
 
-AW20 validation on the feature branch recorded:
+AW21 validation on the feature branch recorded:
 
 ```text
-Agent World Quality #104     ✅
-runtime dependency audit     ✅
-tests                        ✅
-production build             ✅
-real Windows governed-workspace sidebar smoke ✅
+Agent World Quality #110                      ✅
+runtime dependency audit                      ✅
+tests                                         ✅
+production build                              ✅
+real Windows tray open                        ✅
+real Windows tray restart + notification      ✅
+healthz after restart                         ✅
+stop and exit                                 ✅
+port 5274 closed after shutdown               ✅
 ```
 
-Paired Agency Agent milestones are complete through AW19. AW20 keeps Agent World descriptive: it reuses the existing compact, path-free workspace projection to make managed project zones understandable without exposing local filesystem paths or adding mutation authority.
+AW21 keeps Agent World browser-based and localhost-only while adding a native Windows tray control surface. It reuses the existing AW8 launcher and does not introduce Electron, provider secrets, or new execution authority.
 
 ## Roadmap
 
@@ -302,6 +328,7 @@ AW17  Evidence & Trace navigation             ✅
 AW18  Friendly capability labels              ✅
 AW19  Project Overview navigation              ✅
 AW20  Governed Workspace UX                    ✅
+AW21  Windows Desktop / Tray Launcher           ✅
 ```
 
 ## Upstream relationship

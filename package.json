@@ -47,7 +47,10 @@
     "start": "vite build && node server/serve.mjs",
     "serve": "node server/serve.mjs",
     "assets": "node tools/build-assets.mjs",
-    "test": "node --test \"test/**/*.test.mjs\""
+    "test": "node --test \"test/**/*.test.mjs\"",
+    "desktop:server": "node tools/agent-world-launcher.mjs desktop-server",
+    "desktop": "powershell.exe -NoProfile -STA -File tools/agent-world-tray.ps1",
+    "desktop:install": "powershell.exe -NoProfile -STA -File tools/install-windows-shortcut.ps1"
   },
   "dependencies": {
     "@mdi/js": "^7.4.47",
