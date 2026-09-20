@@ -10,6 +10,7 @@ const EXAMPLE_CONFIG = path.join(ROOT, 'config', 'agent-world.example.json')
 const LOCAL_CONFIG = path.join(ROOT, 'config', 'agent-world.local.json')
 const VITE_BIN = path.join(ROOT, 'node_modules', 'vite', 'bin', 'vite.js')
 const ASSET_BUILDER = path.join(HERE, 'build-assets.mjs')
+const SERVER_ENTRY = path.join(ROOT, 'server', 'serve.mjs')
 
 function clean(value) {
   return typeof value === 'string' ? value.trim() : ''
@@ -114,9 +115,20 @@ async function runAssets() {
   if (result.code !== 0) throw new Error(`Asset build failed with exit code ${result.code}`)
 }
 
+async function runProductionBuild() {
+  if (!(await exists(VITE_BIN))) {
+    throw new Error('Vite is not installed. Run `npm ci` once in silverken-agent-world.')
+  }
+
+  await runAssets()
+  const child = spawnInherited(process.execPath, [VITE_BIN, 'build'])
+  const result = await waitForExit(child)
+  if (result.code !== 0) throw new Error(`Production build failed with exit code ${result.code}`)
+}
+
 async function runDev() {
   const loaded = await loadLocalConfig()
-  console.log(`SilverKen Agent World · local launcher`)
+  console.log('SilverKen Agent World · local launcher')
   console.log(`${loaded.loaded ? '✓' : '!'} Local config: ${loaded.path}`)
   console.log(`✓ Agency Agent token: ${loaded.summary.agencyAgent.tokenConfigured ? 'configured' : 'not configured'}`)
   console.log(`✓ GitHub token: ${loaded.summary.github.tokenConfigured ? 'configured' : 'not configured'}`)
@@ -138,6 +150,32 @@ async function runDev() {
 
   try {
     const result = await waitForExit(viteChild)
+    if (result.code && result.code !== 0) process.exitCode = result.code
+  } finally {
+    if (agencyChild && !agencyChild.killed) agencyChild.kill()
+  }
+}
+
+async function runDesktopServer() {
+  const loaded = await loadLocalConfig()
+  console.log('SilverKen Agent World · managed desktop server')
+  console.log(`${loaded.loaded ? '✓' : '!'} Local config: ${loaded.path}`)
+  console.log(`✓ Agency Agent token: ${loaded.summary.agencyAgent.tokenConfigured ? 'configured' : 'not configured'}`)
+  console.log(`✓ GitHub token: ${loaded.summary.github.tokenConfigured ? 'configured' : 'not configured'}`)
+
+  const agencyChild = await startAgencyAgentIfNeeded(loaded.summary)
+  await runProductionBuild()
+
+  const serverChild = spawnInherited(process.execPath, [SERVER_ENTRY])
+  const shutdown = () => {
+    if (!serverChild.killed) serverChild.kill()
+    if (agencyChild && !agencyChild.killed) agencyChild.kill()
+  }
+  process.once('SIGINT', shutdown)
+  process.once('SIGTERM', shutdown)
+
+  try {
+    const result = await waitForExit(serverChild)
     if (result.code && result.code !== 0) process.exitCode = result.code
   } finally {
     if (agencyChild && !agencyChild.killed) agencyChild.kill()
@@ -185,6 +223,7 @@ async function main() {
   if (command === 'setup') return setup()
   if (command === 'doctor') return doctor()
   if (command === 'dev') return runDev()
+  if (command === 'desktop-server') return runDesktopServer()
   throw new Error(`Unknown launcher command: ${command}`)
 }
 
@@ -195,4 +234,14 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
   })
 }
 
-export { agencyExecutable, doctor, health, resolveAgencyRepo, setup, startAgencyAgentIfNeeded, waitForHealth }
+export {
+  agencyExecutable,
+  doctor,
+  health,
+  resolveAgencyRepo,
+  runDesktopServer,
+  runProductionBuild,
+  setup,
+  startAgencyAgentIfNeeded,
+  waitForHealth,
+}
