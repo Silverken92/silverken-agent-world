@@ -529,11 +529,42 @@ The visual smoke also caught and closed a CSS cascade bug where hidden local-onl
 
 AW20 therefore meets its governed-workspace UX exit criteria.
 
-## After AW20
+## AW21 — Windows Desktop / Tray Launcher 🚧
+
+Goal: make the existing AW8 local launcher easy to start and manage from Windows without introducing Electron, duplicating Agent World runtime logic, or changing the governance boundary.
+
+Scope:
+
+- reuse the existing AW8 machine-local config and Agency Agent auto-start behavior;
+- add a managed production launcher that builds Agent World and serves it locally;
+- expose a narrow Agent World `/healthz` endpoint for desktop process health only;
+- add a native Windows notification-area launcher using Windows PowerShell / WinForms;
+- provide **Open Agent World**, **Restart**, **Open logs**, and **Stop and exit** actions;
+- add an opt-in Start Menu shortcut installer;
+- keep Agent World browser-based and localhost-only by default;
+- never embed Agency Agent, GitHub, or OpenAI credentials in the tray or browser;
+- stop only the process tree owned by the tray session;
+- preserve `npm run dev` and the upstream Bot Crossing harness seam unchanged.
+
+AW21 promotion gates:
+
+```text
+managed production launcher reuses AW8 boundary                  🚧
+localhost Agent World health endpoint                            🚧
+native Windows tray lifecycle                                    🚧
+Start Menu shortcut installer                                    🚧
+credential-free tray implementation                              🚧
+runtime tests + production build                                 NOT RUN
+Agent World Quality exact-head                                   NOT RUN
+real Windows tray start/open/restart/stop smoke                   NOT RUN
+```
+
+See [`docs/windows-desktop.md`](docs/windows-desktop.md).
+
+## After AW21
 
 Candidate future work, not pre-approved:
 
-- optional desktop packaging / tray launcher;
 - upstream Bot Crossing sync automation;
 - cleanup/automation for stale development branches.
 
