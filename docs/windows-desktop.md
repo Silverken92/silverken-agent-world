@@ -91,3 +91,22 @@ npm run dev
 ```
 
 AW21 is an optional operator convenience layer. The browser app, harness contracts, scanner behavior, state model, and upstream Bot Crossing seam remain unchanged.
+
+
+## Windows validation
+
+AW21 was validated on a real Windows machine.
+
+Final smoke:
+
+```text
+tray menu visible                                           PASS
+Open Agent World                                           PASS
+Restart                                                    PASS
+Windows notification: Redemarrage termine.                PASS
+GET /healthz after restart                                 PASS
+Stop and exit                                              PASS
+TCP 127.0.0.1:5274 closed after shutdown                  PASS
+```
+
+The first smoke identified that restart and shutdown were not deterministic. The final implementation uses a WinForms `ApplicationContext`, explicit process-tree termination, a bounded wait for `/healthz` to disappear, and machine-local `tray.log` diagnostics. The corrected lifecycle passed the Windows re-smoke.
