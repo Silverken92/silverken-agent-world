@@ -15,11 +15,20 @@ $HealthUrl = "$Url/healthz"
 $RuntimeDir = Join-Path $env:LOCALAPPDATA 'SilverKen\AgentWorld'
 $StdoutLog = Join-Path $RuntimeDir 'agent-world.out.log'
 $StderrLog = Join-Path $RuntimeDir 'agent-world.err.log'
+$TrayLog = Join-Path $RuntimeDir 'tray.log'
 
 New-Item -ItemType Directory -Path $RuntimeDir -Force | Out-Null
 
 $script:OwnedProcess = $null
 $script:Exiting = $false
+$script:Context = $null
+
+function Write-TrayLog {
+    param([string]$Message)
+
+    $stamp = Get-Date -Format 'yyyy-MM-dd HH:mm:ss.fff'
+    Add-Content -LiteralPath $TrayLog -Value "[$stamp] $Message" -Encoding UTF8
+}
 
 function Test-AgentWorldHealth {
     try {
@@ -31,35 +40,77 @@ function Test-AgentWorldHealth {
     }
 }
 
+function Wait-AgentWorldStopped {
+    param([int]$TimeoutSeconds = 8)
+
+    $deadline = (Get-Date).AddSeconds($TimeoutSeconds)
+    while ((Get-Date) -lt $deadline) {
+        if (-not (Test-AgentWorldHealth)) {
+            return $true
+        }
+
+        Start-Sleep -Milliseconds 250
+    }
+
+    return $false
+}
+
 function Open-AgentWorld {
     Start-Process $Url | Out-Null
 }
 
 function Stop-OwnedProcess {
-    if ($null -eq $script:OwnedProcess) {
+    $process = $script:OwnedProcess
+    $script:OwnedProcess = $null
+
+    if ($null -eq $process) {
+        Write-TrayLog 'Stop requested with no owned process.'
         return
     }
 
     try {
-        $script:OwnedProcess.Refresh()
-    }
-    catch {
-        $script:OwnedProcess = $null
-        return
-    }
+        $process.Refresh()
+        if ($process.HasExited) {
+            Write-TrayLog "Owned process already exited. PID=$($process.Id)"
+            return
+        }
 
-    if (-not $script:OwnedProcess.HasExited) {
+        $pidToStop = $process.Id
+        Write-TrayLog "Stopping owned process tree. PID=$pidToStop"
+
         $taskkill = Join-Path $env:SystemRoot 'System32\taskkill.exe'
-        & $taskkill /PID $script:OwnedProcess.Id /T /F | Out-Null
-        $script:OwnedProcess.WaitForExit(5000) | Out-Null
-    }
+        $killArgs = @{
+            FilePath = $taskkill
+            ArgumentList = @('/PID', [string]$pidToStop, '/T', '/F')
+            WindowStyle = 'Hidden'
+            Wait = $true
+            PassThru = $true
+        }
+        $kill = Start-Process @killArgs
 
-    $script:OwnedProcess.Dispose()
-    $script:OwnedProcess = $null
+        Write-TrayLog "taskkill exit code=$($kill.ExitCode) for PID=$pidToStop"
+
+        $process.Refresh()
+        if (-not $process.HasExited) {
+            Stop-Process -Id $pidToStop -Force -ErrorAction SilentlyContinue
+        }
+
+        $null = $process.WaitForExit(5000)
+
+        if (-not (Wait-AgentWorldStopped)) {
+            throw "Agent World is still healthy on $HealthUrl after stopping PID $pidToStop."
+        }
+
+        Write-TrayLog "Owned process tree stopped. PID=$pidToStop"
+    }
+    finally {
+        $process.Dispose()
+    }
 }
 
 function Start-OwnedProcess {
     if (Test-AgentWorldHealth) {
+        Write-TrayLog 'Existing Agent World instance detected; treating it as external.'
         return 'external'
     }
 
@@ -71,6 +122,7 @@ function Start-OwnedProcess {
             }
         }
         catch {
+            Write-TrayLog "Failed to refresh stale owned process: $($_.Exception.Message)"
         }
 
         try {
@@ -96,38 +148,49 @@ function Start-OwnedProcess {
     }
 
     $script:OwnedProcess = Start-Process @startArgs
+    Write-TrayLog "Started managed desktop launcher. PID=$($script:OwnedProcess.Id)"
 
-    $deadline = (Get-Date).AddSeconds(30)
+    $deadline = (Get-Date).AddSeconds(45)
     while ((Get-Date) -lt $deadline) {
         if (Test-AgentWorldHealth) {
+            Write-TrayLog "Agent World healthy at $HealthUrl"
             return 'owned'
         }
 
         $script:OwnedProcess.Refresh()
         if ($script:OwnedProcess.HasExited) {
-            throw "Agent World stopped during startup. See $StderrLog"
+            $exitCode = $script:OwnedProcess.ExitCode
+            $script:OwnedProcess.Dispose()
+            $script:OwnedProcess = $null
+            throw "Agent World stopped during startup with exit code $exitCode. See $StderrLog"
         }
 
         Start-Sleep -Milliseconds 500
     }
 
     Stop-OwnedProcess
-    throw "Agent World did not become healthy within 30 seconds. See $StderrLog"
+    throw "Agent World did not become healthy within 45 seconds. See $StderrLog"
 }
 
 function Restart-AgentWorld {
     if ($null -eq $script:OwnedProcess -and (Test-AgentWorldHealth)) {
-        [System.Windows.Forms.MessageBox]::Show(
-            'Agent World is already running outside this tray session. It will not be stopped automatically.',
-            'SilverKen Agent World',
-            [System.Windows.Forms.MessageBoxButtons]::OK,
-            [System.Windows.Forms.MessageBoxIcon]::Information
-        ) | Out-Null
-        return
+        throw 'Agent World is running outside this tray session. This tray will not stop or restart that external instance.'
     }
 
     Stop-OwnedProcess
-    Start-OwnedProcess | Out-Null
+    return Start-OwnedProcess
+}
+
+function Show-TrayError {
+    param([string]$Message)
+
+    Write-TrayLog "ERROR: $Message"
+    [System.Windows.Forms.MessageBox]::Show(
+        $Message,
+        'SilverKen Agent World',
+        [System.Windows.Forms.MessageBoxButtons]::OK,
+        [System.Windows.Forms.MessageBoxIcon]::Error
+    ) | Out-Null
 }
 
 $tray = New-Object System.Windows.Forms.NotifyIcon
@@ -145,27 +208,83 @@ $menu.Items.Add('-') | Out-Null
 $logsItem = $menu.Items.Add('Ouvrir les logs')
 $exitItem = $menu.Items.Add('Arreter et quitter')
 
-$openItem.Add_Click({ Open-AgentWorld })
-$tray.Add_DoubleClick({ Open-AgentWorld })
-$restartItem.Add_Click({
+$openItem.Add_Click({
     try {
-        Restart-AgentWorld
+        Open-AgentWorld
     }
     catch {
-        [System.Windows.Forms.MessageBox]::Show(
-            $_.Exception.Message,
-            'SilverKen Agent World',
-            [System.Windows.Forms.MessageBoxButtons]::OK,
-            [System.Windows.Forms.MessageBoxIcon]::Error
-        ) | Out-Null
+        Show-TrayError $_.Exception.Message
     }
 })
-$logsItem.Add_Click({ Start-Process explorer.exe -ArgumentList $RuntimeDir | Out-Null })
+
+$tray.Add_DoubleClick({
+    try {
+        Open-AgentWorld
+    }
+    catch {
+        Show-TrayError $_.Exception.Message
+    }
+})
+
+$restartItem.Add_Click({
+    try {
+        $restartItem.Enabled = $false
+        $statusItem.Text = 'Etat : redemarrage...'
+        $tray.Text = 'SilverKen Agent World - redemarrage...'
+        [System.Windows.Forms.Application]::DoEvents()
+
+        $mode = Restart-AgentWorld
+
+        if ($mode -ne 'owned') {
+            throw "Unexpected restart mode: $mode"
+        }
+
+        $statusItem.Text = 'Etat : en cours'
+        $tray.Text = 'SilverKen Agent World - en cours'
+        $tray.ShowBalloonTip(
+            1800,
+            'SilverKen Agent World',
+            'Redemarrage termine.',
+            [System.Windows.Forms.ToolTipIcon]::Info
+        )
+        Write-TrayLog 'Restart completed successfully.'
+    }
+    catch {
+        Show-TrayError $_.Exception.Message
+    }
+    finally {
+        $restartItem.Enabled = $true
+    }
+})
+
+$logsItem.Add_Click({
+    try {
+        Start-Process explorer.exe -ArgumentList $RuntimeDir | Out-Null
+    }
+    catch {
+        Show-TrayError $_.Exception.Message
+    }
+})
+
 $exitItem.Add_Click({
     $script:Exiting = $true
-    Stop-OwnedProcess
-    $tray.Visible = $false
-    [System.Windows.Forms.Application]::Exit()
+    $statusItem.Text = 'Etat : arret...'
+    $tray.Text = 'SilverKen Agent World - arret...'
+    [System.Windows.Forms.Application]::DoEvents()
+
+    try {
+        Stop-OwnedProcess
+        Write-TrayLog 'Tray exit requested; owned runtime stopped.'
+    }
+    catch {
+        Write-TrayLog "Shutdown warning: $($_.Exception.Message)"
+    }
+    finally {
+        $tray.Visible = $false
+        if ($null -ne $script:Context) {
+            $script:Context.ExitThread()
+        }
+    }
 })
 
 $tray.ContextMenuStrip = $menu
@@ -174,6 +293,7 @@ $timer = New-Object System.Windows.Forms.Timer
 $timer.Interval = 3000
 $timer.Add_Tick({
     $healthy = Test-AgentWorldHealth
+
     if ($healthy) {
         if ($null -ne $script:OwnedProcess) {
             $statusItem.Text = 'Etat : en cours'
@@ -191,38 +311,58 @@ $timer.Add_Tick({
 
     $restartItem.Enabled = -not ($null -eq $script:OwnedProcess -and $healthy)
 })
+
 $timer.Start()
+$script:Context = New-Object System.Windows.Forms.ApplicationContext
 
 try {
+    Write-TrayLog 'Tray starting.'
     $mode = Start-OwnedProcess
+
     if ($mode -eq 'owned') {
         $tray.ShowBalloonTip(
             2000,
             'SilverKen Agent World',
-            'Agent World est demarre. Double-cliquez sur l''icone pour l''ouvrir.',
+            'Agent World est demarre. Double-cliquez sur cette icone pour l''ouvrir.',
             [System.Windows.Forms.ToolTipIcon]::Info
         )
     }
+
     Open-AgentWorld
-    [System.Windows.Forms.Application]::Run()
+    [System.Windows.Forms.Application]::Run($script:Context)
 }
 catch {
     $tray.Visible = $false
-    Stop-OwnedProcess
-    [System.Windows.Forms.MessageBox]::Show(
-        $_.Exception.Message,
-        'SilverKen Agent World',
-        [System.Windows.Forms.MessageBoxButtons]::OK,
-        [System.Windows.Forms.MessageBoxIcon]::Error
-    ) | Out-Null
+
+    try {
+        Stop-OwnedProcess
+    }
+    catch {
+        Write-TrayLog "Cleanup warning: $($_.Exception.Message)"
+    }
+
+    Show-TrayError $_.Exception.Message
     exit 1
 }
 finally {
     $timer.Stop()
     $timer.Dispose()
+    $tray.Visible = $false
     $tray.Dispose()
 
-    if (-not $script:Exiting) {
-        Stop-OwnedProcess
+    if ($null -ne $script:Context) {
+        $script:Context.Dispose()
+        $script:Context = $null
     }
+
+    if (-not $script:Exiting) {
+        try {
+            Stop-OwnedProcess
+        }
+        catch {
+            Write-TrayLog "Final cleanup warning: $($_.Exception.Message)"
+        }
+    }
+
+    Write-TrayLog 'Tray stopped.'
 }
