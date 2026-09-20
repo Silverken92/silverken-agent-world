@@ -8,8 +8,7 @@ This repository is a fork of **[Station-Sciences/bot-crossing](https://github.co
 
 ## Status
 
-**Latest completed milestone: AW20 — Governed Workspace UX**  
-**Current development: AW21 — Windows Desktop / Tray Launcher**
+**Latest completed milestone: AW21 — Windows Desktop / Tray Launcher**
 
 | Capability | Status |
 | --- | --- |
@@ -40,7 +39,7 @@ This repository is a fork of **[Station-Sciences/bot-crossing](https://github.co
 | Plain-language AgentProfile capability labels | ✅ AW18 CI + Windows validated |
 | Project zone → Operator Overview navigation | ✅ AW19 CI + Windows validated |
 | Governed workspace sidebar | ✅ AW20 CI + Windows validated |
-| Windows desktop / tray launcher | 🚧 AW21 in progress |
+| Windows desktop / tray launcher | ✅ AW21 CI + Windows validated |
 
 ## Product model
 
@@ -286,17 +285,21 @@ npm test
 npm run build
 ```
 
-AW20 validation on the feature branch recorded:
+AW21 validation on the feature branch recorded:
 
 ```text
-Agent World Quality #104     ✅
-runtime dependency audit     ✅
-tests                        ✅
-production build             ✅
-real Windows governed-workspace sidebar smoke ✅
+Agent World Quality #110                      ✅
+runtime dependency audit                      ✅
+tests                                         ✅
+production build                              ✅
+real Windows tray open                        ✅
+real Windows tray restart + notification      ✅
+healthz after restart                         ✅
+stop and exit                                 ✅
+port 5274 closed after shutdown               ✅
 ```
 
-Paired Agency Agent milestones are complete through AW19. AW20 keeps Agent World descriptive: it reuses the existing compact, path-free workspace projection to make managed project zones understandable without exposing local filesystem paths or adding mutation authority.
+AW21 keeps Agent World browser-based and localhost-only while adding a native Windows tray control surface. It reuses the existing AW8 launcher and does not introduce Electron, provider secrets, or new execution authority.
 
 ## Roadmap
 
@@ -325,7 +328,7 @@ AW17  Evidence & Trace navigation             ✅
 AW18  Friendly capability labels              ✅
 AW19  Project Overview navigation              ✅
 AW20  Governed Workspace UX                    ✅
-AW21  Windows Desktop / Tray Launcher           🚧
+AW21  Windows Desktop / Tray Launcher           ✅
 ```
 
 ## Upstream relationship
