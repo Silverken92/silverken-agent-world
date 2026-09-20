@@ -529,7 +529,7 @@ The visual smoke also caught and closed a CSS cascade bug where hidden local-onl
 
 AW20 therefore meets its governed-workspace UX exit criteria.
 
-## AW21 — Windows Desktop / Tray Launcher 🚧
+## AW21 — Windows Desktop / Tray Launcher ✅
 
 Goal: make the existing AW8 local launcher easy to start and manage from Windows without introducing Electron, duplicating Agent World runtime logic, or changing the governance boundary.
 
@@ -549,15 +549,29 @@ Scope:
 AW21 promotion gates:
 
 ```text
-managed production launcher reuses AW8 boundary                  🚧
-localhost Agent World health endpoint                            🚧
-native Windows tray lifecycle                                    🚧
-Start Menu shortcut installer                                    🚧
-credential-free tray implementation                              🚧
-runtime tests + production build                                 NOT RUN
-Agent World Quality exact-head                                   NOT RUN
-real Windows tray start/open/restart/stop smoke                   NOT RUN
+managed production launcher reuses AW8 boundary                  ✅
+localhost Agent World health endpoint                            ✅
+native Windows tray lifecycle                                    ✅
+Start Menu shortcut installer                                    ✅
+credential-free tray implementation                              ✅
+runtime tests + production build                                 ✅
+Agent World Quality #110                                         ✅
+real Windows tray start/open/restart/stop smoke                   ✅
 ```
+
+Real Windows smoke evidence:
+
+```text
+tray menu visible                                                ✅
+Ouvrir Agent World                                               ✅
+Redemarrer                                                       ✅
+Windows notification "Redemarrage termine."                      ✅
+/healthz after restart: ok / silverken-agent-world               ✅
+Arreter et quitter                                               ✅
+127.0.0.1:5274 closed after shutdown                             ✅
+```
+
+The first smoke exposed non-deterministic restart/shutdown behavior in the tray lifecycle. AW21 fixed that with an explicit WinForms `ApplicationContext`, process-tree termination, stop-health waiting and a machine-local `tray.log`. The final Windows re-smoke passed.
 
 See [`docs/windows-desktop.md`](docs/windows-desktop.md).
 
