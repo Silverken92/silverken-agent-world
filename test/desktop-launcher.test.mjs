@@ -64,3 +64,14 @@ test('AW21 Start Menu installer targets the repository launcher', async () => {
   assert.match(command, /agent-world-tray\.ps1/)
   assert.match(command, /-WindowStyle Hidden/)
 })
+
+test('AW21 tray uses deterministic WinForms lifecycle and observable shutdown', async () => {
+  const tray = await read('tools/agent-world-tray.ps1')
+
+  assert.match(tray, /System\.Windows\.Forms\.ApplicationContext/)
+  assert.match(tray, /ExitThread\(\)/)
+  assert.match(tray, /Wait-AgentWorldStopped/)
+  assert.match(tray, /tray\.log/)
+  assert.match(tray, /taskkill exit code=/)
+  assert.match(tray, /Restart completed successfully/)
+})
