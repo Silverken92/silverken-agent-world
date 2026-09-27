@@ -14,7 +14,8 @@
   text-overflow: ellipsis;
 }
 
-.thread-pop .sk-nav .sk-nav-link.operator {
+.thread-pop .sk-nav .sk-nav-link.operator,
+.thread-pop .sk-nav .sk-nav-link.preview-operator {
   grid-column: 1 / -1;
   border-color: rgba(134, 126, 255, 0.5);
   background: rgba(92, 82, 190, 0.18);
@@ -33,7 +34,8 @@
     grid-template-columns: 1fr;
   }
 
-  .thread-pop .sk-nav .sk-nav-link.operator {
+  .thread-pop .sk-nav .sk-nav-link.operator,
+  .thread-pop .sk-nav .sk-nav-link.preview-operator {
     grid-column: auto;
   }
 }

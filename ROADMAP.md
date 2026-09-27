@@ -577,6 +577,18 @@ See [`docs/windows-desktop.md`](docs/windows-desktop.md).
 
 ## After AW21
 
+### AW23 — Local preview observation (candidate)
+
+Agency Agent AW23B owns verified Next.js preview start/stop and process lifetime.
+Agent World may read the authenticated, project-scoped preview status for at
+most four recently completed missions per project. A stopped mission receives
+the read-only preflight check before showing **Ready**; a live process shows
+**Running**. Missing permissions or unsupported older Operator APIs omit the
+badge without affecting the existing operational snapshot. The 3D card links
+back to the project's Missions view in Operator. Only the status enters colony
+state: no port, local URL, source digest, workspace path, command, secret or
+preview start/stop authority is copied into Agent World.
+
 Candidate future work, not pre-approved:
 
 - upstream Bot Crossing sync automation;

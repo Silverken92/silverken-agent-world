@@ -26,6 +26,20 @@ function operatorProjectOverviewUrl(value) {
   }
 }
 
+function operatorProjectMissionsUrl(value) {
+  const safe = safeHttpUrl(value)
+  if (!safe) return ''
+  try {
+    const url = new URL(safe)
+    if (url.pathname !== '/ui' || !url.searchParams.get('project')) return ''
+    url.searchParams.delete('task')
+    url.searchParams.set('view', 'missions')
+    return url.toString()
+  } catch {
+    return ''
+  }
+}
+
 function githubRepoUrl(repo) {
   const value = typeof repo === 'string' ? repo.trim() : ''
   if (!/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/.test(value)) return ''
@@ -59,6 +73,17 @@ export function governedNavigation(data, locale = 'en') {
     })
   }
 
+  if (data.j === 'READY' || data.j === 'RUNNING') {
+    const missionUrl = operatorProjectMissionsUrl(operatorUrl)
+    if (missionUrl) actions.push({
+      kind: 'preview-operator',
+      label: fr ? 'Voir l’aperçu dans Operator' : 'View preview in Operator',
+      title: fr ? 'Ouvrir la mission et ses contrôles dans Agency Agent Operator'
+        : 'Open the mission and its controls in Agency Agent Operator',
+      url: missionUrl,
+    })
+  }
+
   const github = data?.h
   const repoUrl = githubRepoUrl(github?.q)
   const prNumber = Math.max(0, Number(github?.n) || 0)
@@ -80,8 +105,13 @@ export function governedNavigation(data, locale = 'en') {
   }
 
   return actions
-    .map((action) => ({ ...action, url: safeHttpUrl(action.url, { githubOnly: action.kind !== 'operator' }) }))
+    .map((action) => ({
+      ...action,
+      url: safeHttpUrl(action.url, {
+        githubOnly: action.kind !== 'operator' && action.kind !== 'preview-operator',
+      }),
+    }))
     .filter((action) => action.url)
 }
 
-export { githubRepoUrl, operatorProjectOverviewUrl, safeHttpUrl }
+export { githubRepoUrl, operatorProjectMissionsUrl, operatorProjectOverviewUrl, safeHttpUrl }
