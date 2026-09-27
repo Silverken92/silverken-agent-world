@@ -235,6 +235,17 @@ export function operationalBadges(data, locale = 'en') {
     )
   }
 
+  if (data.j === 'RUNNING' || data.j === 'READY') {
+    add(
+      `Aperçu · ${data.j === 'RUNNING'
+        ? (fr ? 'EN COURS' : 'RUNNING')
+        : (fr ? 'PRÊT' : 'READY')}`,
+      data.j === 'RUNNING' ? 'pending' : 'success',
+      fr ? 'Aperçu local gouverné dans Agency Agent Operator'
+        : 'Governed local preview in Agency Agent Operator'
+    )
+  }
+
   if (Array.isArray(data.z) && data.z.length >= 4) {
     const status = String(data.z[0] || '').toUpperCase()
     const role = String(data.z[2] || '')

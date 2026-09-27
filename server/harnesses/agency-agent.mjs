@@ -1,5 +1,6 @@
 const DEFAULT_BASE_URL = 'http://127.0.0.1:8787'
 const REQUEST_TIMEOUT_MS = 1500
+const PREVIEW_MISSION_LIMIT = 4
 const OPS_MODEL_PREFIX = 'SKOPS:'
 
 const ACTIVE_STATUSES = new Set([
@@ -224,6 +225,10 @@ function compactOrchestration(value) {
   }
 }
 
+function compactPreviewStatus(value) {
+  return value === 'RUNNING' || value === 'READY' ? value : ''
+}
+
 function orchestrationCounts(mission) {
   const assignments = mission?.assignments || []
   return {
@@ -415,6 +420,7 @@ function encodeOperationalModel(ops, navigation = {}) {
           navigation.assignment.artifactCount,
         ]
       : undefined,
+    j: compactPreviewStatus(navigation.previewStatus) || undefined,
     t: ops.activity.tokenUsage,
     c: ops.activity.costByCurrency,
     x: Object.keys(extension).length ? extension : undefined,
@@ -422,7 +428,10 @@ function encodeOperationalModel(ops, navigation = {}) {
   return `${OPS_MODEL_PREFIX}${encodeURIComponent(JSON.stringify(display))}`
 }
 
-function toThread(project, record, agentProfile = null, workspace = null, orchestration = null) {
+function toThread(
+  project, record, agentProfile = null, workspace = null, orchestration = null,
+  previewStatus = ''
+) {
   const task = record?.task && typeof record.task === 'object' ? record.task : record
   const ops = compactOperational(record, task)
   const objective = task.objective || 'Untitled Agency Agent task'
@@ -468,6 +477,7 @@ function toThread(project, record, agentProfile = null, workspace = null, orches
       agentName,
       workspace: workspaceInfo,
       orchestration: mission,
+      previewStatus: mission ? compactPreviewStatus(previewStatus) : '',
     }) || task.execution_model || 'AGENCY_AGENT',
     effort: (task.risk || '').toLowerCase(),
     createdAt,
@@ -496,6 +506,8 @@ function toThread(project, record, agentProfile = null, workspace = null, orches
         orchestrationId: mission.orchestrationId,
         orchestrationStatus: mission.status,
       } : {}),
+      ...(mission && compactPreviewStatus(previewStatus)
+        ? { previewStatus: compactPreviewStatus(previewStatus) } : {}),
     },
   }
 }
@@ -682,6 +694,31 @@ async function scanProject(project) {
     const orchestrationByParentTask = new Map(
       orchestrations.map((mission) => [mission.parentTaskId, mission])
     )
+    // AW23 preview reads are optional and bounded. They never replace the snapshot,
+    // and a token without RUN_READ simply leaves the preview badge absent.
+    const completed = orchestrations
+      .filter((mission) => mission.status === 'COMPLETED' && mission.orchestrationId)
+      .sort((left, right) => epochMs(right.completedAt) - epochMs(left.completedAt))
+      .slice(0, PREVIEW_MISSION_LIMIT)
+    const previewEntries = await Promise.all(completed.map(async (mission) => {
+      const missionId = encodeURIComponent(mission.orchestrationId)
+      const path = `/api/v1/projects/${projectId}/missions/${missionId}`
+      try {
+        const current = await requestJson(`${path}/local-preview`)
+        if (current?.project_id !== project.project_id
+          || current?.orchestration_id !== mission.orchestrationId) return null
+        if (current.status === 'RUNNING') return [mission.orchestrationId, 'RUNNING']
+        if (current.status !== 'STOPPED') return null
+        const preflight = await requestJson(`${path}/preview-preflight`)
+        return preflight?.project_id === project.project_id
+          && preflight?.orchestration_id === mission.orchestrationId
+          && preflight.ready === true
+          ? [mission.orchestrationId, 'READY'] : null
+      } catch {
+        return null
+      }
+    }))
+    const previewByMission = new Map(previewEntries.filter(Boolean))
     const profilesByName = new Map(
       agents
         .filter((profile) => profile?.name && profile?.agent_id)
@@ -698,7 +735,8 @@ async function scanProject(project) {
           record,
           profilesByName.get(task?.owner_agent) || null,
           workspace,
-          orchestrationByParentTask.get(task?.id) || null
+          orchestrationByParentTask.get(task?.id) || null,
+          previewByMission.get(orchestrationByParentTask.get(task?.id)?.orchestrationId) || ''
         )
       }),
     ]

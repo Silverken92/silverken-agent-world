@@ -75,6 +75,15 @@ GET /api/v1/projects/{project_id}/agent-world
 
 The second route is a bounded snapshot produced by Agency Agent specifically for the visual operations surface. Agent World makes one snapshot request per authorized project rather than multiplying evidence calls for every task.
 
+AW23 optionally checks up to four recently completed missions per project
+through `GET .../local-preview`; when stopped, it also reads
+`GET .../preview-preflight`. These authenticated reads require project `RUN_READ`
+and have the same short timeout. A missing or under-authorized endpoint leaves
+the normal snapshot intact. Agent World retains only `RUNNING` or `READY` and
+derives a safe link to the Operator Missions tab. It never forwards the local
+preview URL, port, source digest, branch, preflight reasons or credentials to
+the browser, and it cannot start or stop a preview.
+
 For compatibility while upgrading an older local Agency Agent checkout, Agent World falls back to:
 
 ```text

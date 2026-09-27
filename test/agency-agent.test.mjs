@@ -11,6 +11,7 @@ import agencyAgent, {
   toThread,
 } from '../server/harnesses/agency-agent.mjs'
 import { decodeOperationalModel, operationalBadges } from '../src/ui/operational.js'
+import { governedNavigation } from '../src/ui/navigation.js'
 
 const project = {
   project_id: 'proj-1',
@@ -661,6 +662,72 @@ test('Agency Agent live scan consumes one bounded operational snapshot per proje
   assert.equal(JSON.stringify(threads[0]).includes('aa_fixture_secret'), false)
   assert.ok(calls.some((call) => call.url === 'http://localhost:9999/api/v1/projects/proj-1/agent-world'))
   assert.equal(calls.some((call) => call.url.endsWith('/tasks')), false)
+})
+
+test('AW23 preview projection is compact, optional, and navigates to Operator missions', async (t) => {
+  preserveProcessState(t)
+  process.env.AGENCY_AGENT_URL = 'http://127.0.0.1:8787'
+  process.env.AGENCY_AGENT_TOKEN = 'aa_fixture_secret'
+  const calls = []
+  let running = true
+  let allowed = true
+  const parent = snapshotRecord('BACKLOG')
+  const orchestrationId = 'orch-aw23'
+  const snapshot = {
+    schema_version: '1.5', project, tasks: [parent], agents: [],
+    orchestrations: [{
+      orchestration_id: orchestrationId,
+      parent_task_id: parent.task.id,
+      status: 'COMPLETED',
+      completed_at: '2026-09-27T20:00:00Z',
+    }],
+  }
+  globalThis.fetch = async (url, options = {}) => {
+    const value = String(url)
+    calls.push({ url: value, method: options.method || 'GET' })
+    if (value.endsWith('/api/v1/projects')) return jsonResponse([project])
+    if (value.endsWith('/api/v1/projects/proj-1/agent-world')) return jsonResponse(snapshot)
+    if (value.endsWith('/local-preview')) {
+      if (!allowed) return jsonResponse({ detail: 'forbidden' }, 403)
+      return jsonResponse({
+        project_id: project.project_id, orchestration_id: orchestrationId,
+        status: running ? 'RUNNING' : 'STOPPED',
+        url: 'http://127.0.0.1:45639/?secret=do-not-project',
+        source_digest: 'private-digest', branch: 'F:\\private\\workspace',
+      })
+    }
+    if (value.endsWith('/preview-preflight')) return jsonResponse({
+      project_id: project.project_id, orchestration_id: orchestrationId,
+      ready: true, source_digest: 'private-digest', reasons: ['private-reason'],
+    })
+    return jsonResponse({ detail: 'not found' }, 404)
+  }
+
+  const [live] = await agencyAgent.scanThreads()
+  const liveData = decodeOperationalModel(live.model)
+  assert.equal(live.ref.previewStatus, 'RUNNING')
+  assert.equal(liveData.j, 'RUNNING')
+  assert.ok(operationalBadges(liveData, 'fr').some((badge) => badge.label === 'Aperçu · EN COURS'))
+  const action = governedNavigation(liveData, 'fr').find((item) => item.kind === 'preview-operator')
+  assert.equal(action?.label, 'Voir l’aperçu dans Operator')
+  assert.equal(action?.url, 'http://127.0.0.1:8787/ui?project=proj-1&view=missions')
+  assert.equal(JSON.stringify(live).includes('do-not-project'), false)
+  assert.equal(JSON.stringify(live).includes('private-digest'), false)
+  assert.equal(JSON.stringify(live).includes('private-reason'), false)
+  assert.equal(JSON.stringify(live).includes('F:\\private'), false)
+  assert.equal(JSON.stringify(live).includes('aa_fixture_secret'), false)
+
+  running = false
+  const [ready] = await agencyAgent.scanThreads()
+  assert.equal(ready.ref.previewStatus, 'READY')
+  assert.ok(operationalBadges(decodeOperationalModel(ready.model), 'en')
+    .some((badge) => badge.label === 'Aperçu · READY'))
+  allowed = false
+  const [fallback] = await agencyAgent.scanThreads()
+  assert.equal(fallback.ref.previewStatus, undefined)
+  assert.equal(decodeOperationalModel(fallback.model).j, undefined)
+  assert.ok(calls.every((call) => call.method === 'GET'))
+  assert.equal(calls.filter((call) => call.url.endsWith('/agent-world')).length, 3)
 })
 
 test('Agency Agent falls back to the AW3 task endpoint only when snapshot endpoint is absent', async (t) => {
