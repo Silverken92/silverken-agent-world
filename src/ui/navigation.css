@@ -35,7 +35,7 @@
   }
 
   .thread-pop .sk-nav .sk-nav-link.operator,
-.thread-pop .sk-nav .sk-nav-link.preview-operator {
+  .thread-pop .sk-nav .sk-nav-link.preview-operator {
     grid-column: auto;
   }
 }
